@@ -13,16 +13,37 @@ const age = ref('');
 const goals = ref('');
 const weight = ref('');
 const height = ref('');
+const endOfMembership = ref(''); // Add end_of_membership field
 const router = useRouter();
 
 const createUser = async () => {
   // Hash the password before saving
   const hashedPassword = await bcrypt.hash(password.value, 10);
 
+  // Calculate end_of_membership as now() + 1 month
+  const endOfMembershipDate = new Date();
+  endOfMembershipDate.setMonth(endOfMembershipDate.getMonth() + 1);
+  endOfMembership.value = endOfMembershipDate.toISOString().slice(0, 16); // Set the value for display
+
+  // Get the current date and time for created_at and updated_at
+  const now = new Date().toISOString();
+
   const { data, error } = await supabase
     .from('users')
     .insert([
-      { name: name.value, email: email.value, password: hashedPassword, role: role.value, age: age.value, goals: goals.value, weight: weight.value, height: height.value }
+      { 
+        name: name.value, 
+        email: email.value, 
+        password: hashedPassword, 
+        role: 'user', 
+        age: age.value, 
+        goals: goals.value, 
+        weight: weight.value, 
+        height: height.value,
+        end_of_membership: endOfMembershipDate.toISOString(), // Save end_of_membership
+        created_at: now, // Add created_at timestamp
+        updated_at: now // Add updated_at timestamp
+      }
     ]);
 
   if (error) {
@@ -33,6 +54,15 @@ const createUser = async () => {
     router.push('/application/users');
   }
 };
+
+// Initialize end_of_membership when the component is created
+const initializeEndOfMembership = () => {
+  const endOfMembershipDate = new Date();
+  endOfMembershipDate.setMonth(endOfMembershipDate.getMonth() + 1);
+  endOfMembership.value = endOfMembershipDate.toISOString().slice(0, 16); // Set the value for display
+};
+
+initializeEndOfMembership();
 </script>
 
 <template>
@@ -53,10 +83,6 @@ const createUser = async () => {
           <input v-model="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="Password" required>
         </div>
         <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="role">Role</label>
-          <input v-model="role" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="role" type="text" placeholder="Role" required>
-        </div>
-        <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="age">Age</label>
           <input v-model="age" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="age" type="number" placeholder="Age" required>
         </div>
@@ -71,6 +97,10 @@ const createUser = async () => {
         <div class="mb-4">
           <label class="block text-gray-700 text-sm font-bold mb-2" for="height">Height (cm)</label>
           <input v-model="height" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="height" type="number" placeholder="Height" required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="end_of_membership">End of Membership</label>
+          <input v-model="endOfMembership" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="end_of_membership" type="datetime-local" placeholder="End of Membership" readonly>
         </div>
         <div class="flex justify-center">
           <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">

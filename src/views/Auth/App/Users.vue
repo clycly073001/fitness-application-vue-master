@@ -26,6 +26,25 @@ const fetchUsers = async (page) => {
     console.error('Error:', error);
     swal("Error", "An error occurred while fetching users. Please try again.", "error");
   } else {
+    // Check and update membership status
+    const now = new Date();
+    for (let user of data) {
+      const endOfMembership = new Date(user.end_of_membership);
+      if (endOfMembership <= now && user.membership_status) {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ membership_status: false })
+          .eq('id', user.id);
+
+        if (updateError) {
+          console.error('Error:', updateError);
+          swal("Error", "An error occurred while updating the membership status. Please try again.", "error");
+        } else {
+          user.membership_status = false;
+        }
+      }
+    }
+
     users.value = data;
     totalUsers.value = count;
     totalPages.value = Math.ceil(count / pageSize);
@@ -82,7 +101,11 @@ onMounted(() => {
           <li v-for="user in users" :key="user.id" class="mb-2 p-4 bg-white shadow rounded cursor-pointer hover:bg-gray-800 hover:text-white" @click="viewUserProfile(user.id)">
             <p><strong>Name:</strong> {{ user.name }}</p>
             <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Role:</strong> {{ toPascalCase(user.role) }}</p>
+            <p class="mt-1">
+              <strong>Status:</strong>
+              <span v-if="user.membership_status === true || user.membership_status === 1" class="ml-2 bg-green-500 text-white px-2 py-1 rounded">Active</span>
+              <span v-else class="ml-2 bg-red-500 text-white px-2 py-1 rounded">Expired</span>
+            </p>
           </li>
         </ul>
         <div class="flex flex-col sm:flex-row justify-between items-center mt-4">

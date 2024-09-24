@@ -21,6 +21,25 @@ const fetchUser = async () => {
     swal("Error", "An error occurred while fetching the user. Please try again.", "error");
   } else {
     user.value = data;
+
+    // Check if end_of_membership is the same as the current time
+    const now = new Date();
+    const endOfMembership = new Date(user.value.end_of_membership);
+
+    if (endOfMembership <= now && user.value.membership_status) {
+      // Update membership_status to false
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ membership_status: false })
+        .eq('id', id);
+
+      if (updateError) {
+        console.error('Error:', updateError);
+        swal("Error", "An error occurred while updating the membership status. Please try again.", "error");
+      } else {
+        user.value.membership_status = false;
+      }
+    }
   }
   loading.value = false; // Set loading to false after fetching data
 };
@@ -57,6 +76,18 @@ onMounted(() => {
         </div>
         <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
           <p class="text-gray-600"><strong>Height:</strong> {{ user.height }} cm</p>
+        </div>
+        <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
+          <p class="text-gray-600"><strong>Start of Membership:</strong> {{ new Date(user.start_of_membership).toLocaleString() }}</p>
+        </div>
+        <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
+          <p class="text-gray-600"><strong>End of Membership:</strong> {{ new Date(user.end_of_membership).toLocaleString() }}</p>
+        </div>
+        <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
+          <p class="text-gray-600"><strong>Membership Status:</strong>
+            <span v-if="user.membership_status === true || user.membership_status === 1" class="ml-2 bg-green-500 text-white px-2 py-1 rounded-full">Active</span>
+            <span v-else class="ml-2 bg-red-500 text-white px-2 py-1 rounded-full">Expired</span>
+          </p>
         </div>
       </div>
     </div>

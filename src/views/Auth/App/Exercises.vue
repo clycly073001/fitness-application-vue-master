@@ -154,7 +154,7 @@ onMounted(async () => {
         </button>
       </div>
     </div>
-    <div v-else class="flex justify-center items-center h-full min-h-screen">
+    <div v-else class="flex justify-center h-full min-h-screen">
       <p class="text-center">No exercises found.</p>
     </div>
   </div>
