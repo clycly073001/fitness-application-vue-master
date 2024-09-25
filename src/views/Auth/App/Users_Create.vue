@@ -66,45 +66,112 @@ initializeEndOfMembership();
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 p-6 flex flex-col items-center">
-    <div class="max-w-2xl w-full bg-white p-8 shadow-lg rounded-lg mt-6">
-      <h1 class="text-3xl font-bold mb-4 text-center">Add Member</h1>
-      <form @submit.prevent="createUser">
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="name">Name</label>
-          <input v-model="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" type="text" placeholder="Name" required>
+  <div class="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center">
+    <div class="max-w-xl w-full bg-white p-10 shadow-xl rounded-lg mt-6">
+      <h1 class="text-4xl font-semibold mb-6 text-center text-gray-800">Add Member</h1>
+      <form @submit.prevent="createUser" class="space-y-6">
+        
+        <!-- Name -->
+        <div>
+          <label class="block text-gray-600 text-sm font-medium mb-1" for="name">Name</label>
+          <input 
+            v-model="name" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="name" 
+            type="text" 
+            placeholder="John Doe" 
+            required>
         </div>
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
-          <input v-model="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" placeholder="Email" required>
+
+        <!-- Email -->
+        <div>
+          <label class="block text-gray-600 text-sm font-medium mb-1" for="email">Email</label>
+          <input 
+            v-model="email" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="email" 
+            type="email" 
+            placeholder="johndoe@email.com" 
+            required>
         </div>
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
-          <input v-model="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="Password" required>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-gray-600 text-sm font-medium mb-1" for="password">Password</label>
+          <input 
+            v-model="password" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="password" 
+            type="password" 
+            placeholder="********" 
+            required>
         </div>
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="age">Age</label>
-          <input v-model="age" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="age" type="number" placeholder="Age" required>
+
+        <!-- Age -->
+        <div>
+          <label class="block text-gray-600 text-sm font-medium mb-1" for="age">Age</label>
+          <input 
+            v-model="age" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="age" 
+            type="number" 
+            placeholder="30" 
+            required>
         </div>
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="goals">Goals</label>
-          <input v-model="goals" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="goals" type="text" placeholder="Goals" required>
+
+        <!-- Goals -->
+        <div>
+          <label class="block text-gray-600 text-sm font-medium mb-1" for="goals">Goals</label>
+          <input 
+            v-model="goals" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="goals" 
+            type="text" 
+            placeholder="Fitness Goals" 
+            required>
         </div>
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="weight">Weight (kg)</label>
-          <input v-model="weight" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="weight" type="number" placeholder="Weight" required>
+
+        <!-- Weight -->
+        <div>
+          <label class="block text-gray-600 text-sm font-medium mb-1" for="weight">Weight (kg)</label>
+          <input 
+            v-model="weight" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="weight" 
+            type="number" 
+            placeholder="70" 
+            required>
         </div>
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="height">Height (cm)</label>
-          <input v-model="height" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="height" type="number" placeholder="Height" required>
+
+        <!-- Height -->
+        <div>
+          <label class="block text-gray-600 text-sm font-medium mb-1" for="height">Height (cm)</label>
+          <input 
+            v-model="height" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="height" 
+            type="number" 
+            placeholder="170" 
+            required>
         </div>
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="end_of_membership">End of Membership</label>
-          <input v-model="endOfMembership" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="end_of_membership" type="datetime-local" placeholder="End of Membership" readonly>
+
+        <!-- End of Membership -->
+        <div>
+          <label class="block text-gray-600 text-sm font-medium mb-1" for="end_of_membership">End of Membership</label>
+          <input 
+            v-model="endOfMembership" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="end_of_membership" 
+            type="datetime-local" 
+            readonly>
         </div>
+
+        <!-- Submit Button -->
         <div class="flex justify-center">
-          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-            Create
+          <button 
+            class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-400 transition duration-200"
+            type="submit">
+            Create Member
           </button>
         </div>
       </form>
@@ -115,7 +182,15 @@ initializeEndOfMembership();
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
-body {
-  font-family: 'Roboto', sans-serif;
-}
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  input {
+    transition: all 0.2s ease-in-out;
+  }
+
+  input:focus {
+    transform: translateY(-2px);
+  }
 </style>
