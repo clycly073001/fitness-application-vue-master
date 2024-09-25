@@ -58,7 +58,7 @@ const logout = async () => {
         <RouterLink to="/application/users" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Members</RouterLink>
         <RouterLink to="/application/exercises" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Exercises</RouterLink>
         <RouterLink to="/application/nutrition" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Nutrition</RouterLink>
-        <RouterLink to="/application/progress" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Progress</RouterLink>
+        <RouterLink to="/application/shop" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Shop</RouterLink>
         <button @click="logout" class="py-2 px-4 rounded hover:bg-gray-700 flex items-center justify-center">
           <img src="@/assets/exit.png" alt="Logout" class="w-6 h-6" />
         </button>
