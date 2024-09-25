@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router';
 
 const users = ref([]);
 const currentPage = ref(1);
-const pageSize = 5;
+const pageSize = 9;
 const totalUsers = ref(0);
 const totalPages = ref(0);
 const loading = ref(true); // Add loading state
@@ -52,6 +52,29 @@ const fetchUsers = async (page) => {
   loading.value = false; // Set loading to false after fetching data
 };
 
+const renewMembership = async (userId) => {
+  const now = new Date();
+  const nextMonth = new Date();
+  nextMonth.setMonth(now.getMonth() + 1);
+
+  const { error } = await supabase
+    .from('users')
+    .update({
+      start_of_membership: now.toISOString(),
+      end_of_membership: nextMonth.toISOString(),
+      membership_status: true,
+    })
+    .eq('id', userId);
+
+  if (error) {
+    console.error('Error:', error);
+    swal("Error", "An error occurred while renewing the membership. Please try again.", "error");
+  } else {
+    swal("Success", "Membership renewed successfully!", "success");
+    fetchUsers(currentPage.value); // Refresh users after renewal
+  }
+};
+
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value += 1;
@@ -64,11 +87,6 @@ const prevPage = () => {
     currentPage.value -= 1;
     fetchUsers(currentPage.value);
   }
-};
-
-const toPascalCase = (str) => {
-  return str.replace(/\w+/g, 
-    (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
 };
 
 const viewUserProfile = (userId) => {
@@ -85,51 +103,94 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 p-4 sm:p-6">
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
-      <h1 class="text-2xl sm:text-3xl font-bold mb-4 sm:mb-0">Members</h1>
-      <button @click="goToCreateUser" class="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-700">
+  <div class="min-h-screen bg-gray-50 p-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+      <h1 class="text-4xl font-bold text-gray-800 mb-4 sm:mb-0">Members</h1>
+      <button 
+        @click="goToCreateUser" 
+        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium shadow hover:bg-blue-500 transition-all duration-200"
+      >
         Add Member
       </button>
     </div>
+    
+    <!-- Loader -->
     <div v-if="loading" class="flex justify-center items-center h-full">
-      <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
+      <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
     </div>
+
+    <!-- User List -->
     <div v-else>
       <div v-if="users.length">
-        <ul>
-          <li v-for="user in users" :key="user.id" class="mb-2 p-4 bg-white shadow rounded cursor-pointer hover:bg-gray-800 hover:text-white" @click="viewUserProfile(user.id)">
-            <p><strong>Name:</strong> {{ user.name }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p class="mt-1">
-              <strong>Status:</strong>
-              <span v-if="user.membership_status === true || user.membership_status === 1" class="ml-2 bg-green-500 text-white px-2 py-1 rounded">Active</span>
-              <span v-else class="ml-2 bg-red-500 text-white px-2 py-1 rounded">Expired</span>
-            </p>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <li 
+            v-for="user in users" 
+            :key="user.id" 
+            class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+            @click="viewUserProfile(user.id)"
+          >
+            <div class="mb-4">
+              <p class="text-xl font-semibold text-gray-800">{{ user.name }}</p>
+              <p class="text-gray-500">{{ user.email }}</p>
+            </div>
+            <div class="flex justify-between items-center">
+              <span 
+                :class="user.membership_status ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'"
+                class="px-3 py-1 rounded-full text-sm font-semibold"
+              >
+                {{ user.membership_status ? 'Active' : 'Expired' }}
+              </span>
+
+              <!-- Renew Button -->
+              <button
+                v-if="!user.membership_status"
+                @click.stop="renewMembership(user.id)" 
+                class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow hover:bg-blue-400 transition-all duration-200"
+              >
+                Renew Membership
+              </button>
+            </div>
           </li>
         </ul>
-        <div class="flex flex-col sm:flex-row justify-between items-center mt-4">
-          <button @click="prevPage" :disabled="currentPage === 1" class="bg-gray-800 text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-gray-700 mb-2 sm:mb-0">
+
+        <!-- Pagination Controls -->
+        <div class="flex justify-between items-center mt-8">
+          <button 
+            @click="prevPage" 
+            :disabled="currentPage === 1" 
+            class="bg-gray-300 text-gray-700 px-5 py-3 rounded-lg shadow-sm font-medium disabled:opacity-50 hover:bg-gray-400 transition-all duration-200"
+          >
             Previous
           </button>
-          <span class="mb-2 sm:mb-0">Page {{ currentPage }} of {{ totalPages }}</span>
-          <button @click="nextPage" :disabled="currentPage === totalPages" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">
+          <span class="text-gray-600 font-semibold">Page {{ currentPage }} of {{ totalPages }}</span>
+          <button 
+            @click="nextPage" 
+            :disabled="currentPage === totalPages" 
+            class="bg-gray-300 text-gray-700 px-5 py-3 rounded-lg shadow-sm font-medium disabled:opacity-50 hover:bg-gray-400 transition-all duration-200"
+          >
             Next
           </button>
         </div>
       </div>
+
+      <!-- No Users Found -->
       <div v-else>
-        <p class="text-center">No users found.</p>
+        <p class="text-center text-lg text-gray-500">No users found.</p>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+* {
+  box-sizing: border-box;
+}
 
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .loader {
@@ -144,5 +205,19 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  transition: all 0.2s ease-in-out;
 }
 </style>
