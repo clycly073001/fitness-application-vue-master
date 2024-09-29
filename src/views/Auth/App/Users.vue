@@ -20,6 +20,7 @@ const fetchUsers = async (page) => {
   let { data, error, count } = await supabase
     .from('users')
     .select('*', { count: 'exact' })
+    .eq('role', 'user') // Filter users with role 'user'
     .range(start, end);
 
   if (error) {

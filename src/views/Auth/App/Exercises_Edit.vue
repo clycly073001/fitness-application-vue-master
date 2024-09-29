@@ -1,4 +1,3 @@
-<!-- src/views/Exercises_Edit.vue -->
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -9,31 +8,19 @@ const route = useRoute();
 const router = useRouter();
 const form = ref({
   name: '',
-  description: '',
-  content: '',
-  assigned_to: ''
+  type: '',
+  equipment: '',
+  execution: '',
+  rest: ''
 });
 
-const users = ref([]);
 const errors = ref({
   name: '',
-  description: '',
-  content: '',
-  assigned_to: ''
+  type: '',
+  equipment: '',
+  execution: '',
+  rest: ''
 });
-
-const fetchUsers = async () => {
-  let { data, error } = await supabase
-    .from('users')
-    .select('id, name');
-
-  if (error) {
-    console.error('Error:', error);
-    swal("Error", "An error occurred while fetching users. Please try again.", "error");
-  } else {
-    users.value = data;
-  }
-};
 
 const fetchExercise = async () => {
   const { id } = route.params;
@@ -55,25 +42,30 @@ const validateForm = () => {
   let valid = true;
   errors.value = {
     name: '',
-    description: '',
-    content: '',
-    assigned_to: ''
+    type: '',
+    equipment: '',
+    execution: '',
+    rest: ''
   };
 
   if (!form.value.name) {
     errors.value.name = 'Exercise name is required';
     valid = false;
   }
-  if (!form.value.description) {
-    errors.value.description = 'Exercise description is required';
+  if (!form.value.type) {
+    errors.value.type = 'Exercise type is required';
     valid = false;
   }
-  if (!form.value.content) {
-    errors.value.content = 'Exercise content is required';
+  if (!form.value.equipment) {
+    errors.value.equipment = 'Exercise equipment is required';
     valid = false;
   }
-  if (!form.value.assigned_to) {
-    errors.value.assigned_to = 'Assigning to a user is required';
+  if (!form.value.execution) {
+    errors.value.execution = 'Exercise execution is required';
+    valid = false;
+  }
+  if (!form.value.rest) {
+    errors.value.rest = 'Rest time is required';
     valid = false;
   }
 
@@ -90,9 +82,10 @@ const updateExercise = async () => {
     .from('exercises')
     .update({
       name: form.value.name,
-      description: form.value.description,
-      content: form.value.content,
-      assigned_to: form.value.assigned_to,
+      type: form.value.type,
+      equipment: form.value.equipment,
+      execution: form.value.execution,
+      rest: form.value.rest,
       updated_at: new Date().toISOString()
     })
     .eq('id', id);
@@ -107,7 +100,6 @@ const updateExercise = async () => {
 };
 
 onMounted(() => {
-  fetchUsers();
   fetchExercise();
 });
 </script>
@@ -135,48 +127,62 @@ onMounted(() => {
           </div>
 
           <div class="mb-6">
-            <label class="block mb-2 uppercase font-bold text-xs text-gray-700" for="description">
-              Exercise Description
+            <label class="block mb-2 uppercase font-bold text-xs text-gray-700" for="type">
+              Exercise Type
             </label>
-            <textarea
-              v-model="form.description"
+            <input
+              v-model="form.type"
+              type="text"
               class="border border-gray-400 p-2 w-full rounded-lg"
-              name="description"
-              id="description"
+              name="type"
+              id="type"
               required
             />
-            <span class="text-red-500 text-sm">{{ errors.description }}</span>
+            <span class="text-red-500 text-sm">{{ errors.type }}</span>
           </div>
 
           <div class="mb-6">
-            <label class="block mb-2 uppercase font-bold text-xs text-gray-700" for="content">
-              Exercise Content
+            <label class="block mb-2 uppercase font-bold text-xs text-gray-700" for="equipment">
+              Exercise Equipment
+            </label>
+            <input
+              v-model="form.equipment"
+              type="text"
+              class="border border-gray-400 p-2 w-full rounded-lg"
+              name="equipment"
+              id="equipment"
+              required
+            />
+            <span class="text-red-500 text-sm">{{ errors.equipment }}</span>
+          </div>
+
+          <div class="mb-6">
+            <label class="block mb-2 uppercase font-bold text-xs text-gray-700" for="execution">
+              Exercise Execution
             </label>
             <textarea
-              v-model="form.content"
+              v-model="form.execution"
               class="border border-gray-400 p-2 w-full h-40 rounded-lg"
-              name="content"
-              id="content"
+              name="execution"
+              id="execution"
               required
             />
-            <span class="text-red-500 text-sm">{{ errors.content }}</span>
+            <span class="text-red-500 text-sm">{{ errors.execution }}</span>
           </div>
 
           <div class="mb-6">
-            <label class="block mb-2 uppercase font-bold text-xs text-gray-700" for="assigned_to">
-              Assign To
+            <label class="block mb-2 uppercase font-bold text-xs text-gray-700" for="rest">
+              Rest Time
             </label>
-            <select
-              v-model="form.assigned_to"
+            <input
+              v-model="form.rest"
+              type="text"
               class="border border-gray-400 p-2 w-full rounded-lg"
-              name="assigned_to"
-              id="assigned_to"
+              name="rest"
+              id="rest"
               required
-            >
-              <option value="" disabled>Select a user</option>
-              <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
-            </select>
-            <span class="text-red-500 text-sm">{{ errors.assigned_to }}</span>
+            />
+            <span class="text-red-500 text-sm">{{ errors.rest }}</span>
           </div>
 
           <div class="mb-6">
