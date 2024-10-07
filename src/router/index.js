@@ -15,6 +15,7 @@ import Exercises_Edit from '@/views/Auth/App/Exercises_Edit.vue';
 import Users_Show from '@/views/Auth/App/Users_Show.vue';
 import Users_Create from '@/views/Auth/App/Users_Create.vue';
 import Create_Item from '@/views/Auth/App/Create_Item.vue'; // Ensure this import is correct
+import Shop_Item_Show from '@/views/Auth/App/Shop_Item_Show.vue';
 
 const routes = [
   {
@@ -91,8 +92,13 @@ const routes = [
       },
       {
         path: 'shop/create',
-        name: 'CreateItem',
+        name: 'CreateItem', 
         component: Create_Item
+      },
+      {
+        path: 'shop/:id',
+        name: 'ShowItem',
+        component: Shop_Item_Show
       },
       {
         path: '/:pathMatch(.*)*',

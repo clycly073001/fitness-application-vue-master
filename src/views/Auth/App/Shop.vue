@@ -43,30 +43,35 @@ onMounted(() => {
 const goToCreateItem = () => {
   router.push('/application/shop/create');
 };
+
+const goToShowItem = (id) => {
+  router.push(`/application/shop/${id}`);
+};
 </script>
 
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-3xl font-bold">Shop</h1>
+  <div class="container mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-4xl font-bold text-gray-800">Shop</h1>
       <button 
         @click="goToCreateItem" 
-        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium shadow hover:bg-blue-500 transition-all duration-200"
+        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:bg-blue-500 transition-all duration-200"
       >
         Add Item
       </button>
     </div>
-    <div v-if="error" class="text-red-500">{{ error }}</div>
+    <div v-if="error" class="text-red-500 text-lg">{{ error }}</div>
     <div v-else>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
-        <div v-for="item in itemsForSale" :key="item.id" class="bg-white p-4 rounded-lg shadow">
-          <h2 class="text-xl font-bold mb-2">{{ item.name }}</h2>
-          <p class="text-gray-700 mb-2">{{ item.description }}</p>
-          <p class="text-gray-900 font-bold mb-2">${{ item.price.toFixed(2) }}</p>
-          <p class="text-gray-600">Quantity: {{ item.quantity }}</p>
+        <div v-for="item in itemsForSale" :key="item.id" class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+          <button @click="goToShowItem(item.id)" class="w-full text-left">
+            <h2 class="text-xl font-semibold mb-2 text-blue-600 hover:underline">{{ item.name }}</h2> 
+            <p class="text-gray-900 font-bold mb-2">${{ item.price.toFixed(2) }}</p>
+            <p class="text-gray-600">Quantity: {{ item.quantity }}</p>
+          </button>
         </div>
       </div>
-      <div class="flex justify-center space-x-2">
+      <div class="flex justify-center space-x-2 mt-6">
         <button 
           @click="goToPage(currentPage - 1)" 
           :disabled="currentPage === 1" 
@@ -74,7 +79,7 @@ const goToCreateItem = () => {
         >
           Previous
         </button>
-        <span class="px-4 py-2">{{ currentPage }} / {{ totalPages }}</span>
+        <span class="px-4 py-2 text-lg">{{ currentPage }} / {{ totalPages }}</span>
         <button 
           @click="goToPage(currentPage + 1)" 
           :disabled="currentPage === totalPages" 
@@ -88,6 +93,9 @@ const goToCreateItem = () => {
 </template>
 
 <style scoped>
+.container {
+  max-width: 1200px;
+}
 .grid {
   display: grid;
   gap: 1.5rem;
