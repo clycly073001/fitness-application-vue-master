@@ -66,6 +66,10 @@ const confirmDeleteItem = (id) => {
   });
 };
 
+const goToEditItem = (id) => {
+  router.push(`/application/shop/edit/${id}`);
+};
+
 onMounted(() => {
   fetchItem();
 });
@@ -79,12 +83,20 @@ onMounted(() => {
     <p class="text-gray-900 font-bold mb-4">Price: ${{ item.price.toFixed(2) }}</p>
     <p class="text-gray-600 mb-4">Quantity: {{ item.quantity }}</p>
     <p class="text-gray-500">Created At: {{ new Date(item.created_at).toLocaleString() }}</p>
-    <button 
-      @click="confirmDeleteItem(route.params.id)" 
-      class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-red-500 transition-all duration-200 mt-4"
-    >
-      Delete
-    </button>
+    <div class="flex space-x-4 mt-4">
+      <button 
+        @click="confirmDeleteItem(route.params.id)" 
+        class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-red-500 transition-all duration-200"
+      >
+        Delete
+      </button>
+      <button 
+        @click="goToEditItem(route.params.id)" 
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-blue-500 transition-all duration-200"
+      >
+        Edit
+      </button>
+    </div>
   </div>
   <div v-else class="text-center">Loading...</div>
 </template>
