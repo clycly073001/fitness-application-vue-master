@@ -26,7 +26,21 @@ const fetchExercise = async () => {
 onMounted(() => {
   fetchExercise();
 });
+
+const limit = (string, length) => {
+  return string.length > length ? string.substring(0, length) + '...' : string;
+};
+
+const getYouTubeEmbedUrl = (url) => {
+  const videoId = url.split('v=')[1] || url.split('/shorts/')[1];
+  const ampersandPosition = videoId.indexOf('&');
+  if (ampersandPosition !== -1) {
+    return `https://www.youtube.com/embed/${videoId.substring(0, ampersandPosition)}`;
+  }
+  return `https://www.youtube.com/embed/${videoId}`;
+};
 </script>
+
 <template>
   <div class="min-h-screen bg-gray-50 p-6">
     <div v-if="exercise" class="max-w-2xl mx-auto bg-white p-8 shadow-lg rounded-lg transition-transform transform hover:scale-105">
@@ -36,6 +50,10 @@ onMounted(() => {
         <p class="text-lg text-gray-700"><strong>Equipment:</strong> <span class="text-gray-500">{{ exercise.equipment }}</span></p>
         <p class="text-lg text-gray-700"><strong>Execution:</strong> <span class="text-gray-500" v-html="exercise.execution"></span></p>
         <p class="text-lg text-gray-700"><strong>Rest:</strong> <span class="text-gray-500">{{ exercise.rest }} seconds</span></p>
+        <p class="text-lg text-gray-700"><strong>Link:</strong> <span class="text-gray-500"><a :href="exercise.link" target="_blank">{{ exercise.link }}</a></span></p>
+        <div v-if="exercise.link && (exercise.link.includes('youtube.com') || exercise.link.includes('youtu.be') || exercise.link.includes('shorts'))">
+          <iframe :src="getYouTubeEmbedUrl(exercise.link)" frameborder="0" allowfullscreen class="w-full h-60"></iframe>
+        </div>
         <p class="text-lg text-gray-700"><strong>Created At:</strong> <span class="text-gray-500">{{ formatDate(exercise.created_at) }}</span></p>
         <p class="text-lg text-gray-700"><strong>Updated At:</strong> <span class="text-gray-500">{{ formatDate(exercise.updated_at) }}</span></p>
       </div>
