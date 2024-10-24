@@ -27,17 +27,18 @@ onMounted(() => {
   fetchExercise();
 });
 </script>
-
 <template>
   <div class="min-h-screen bg-gray-50 p-6">
     <div v-if="exercise" class="max-w-2xl mx-auto bg-white p-8 shadow-lg rounded-lg transition-transform transform hover:scale-105">
       <h1 class="text-4xl font-extrabold text-gray-800 mb-4">{{ exercise.name }}</h1>
-      <p class="text-lg text-gray-700"><strong>Type:</strong> {{ exercise.type }}</p>
-      <p class="text-lg text-gray-700"><strong>Equipment:</strong> {{ exercise.equipment }}</p>
-      <p class="text-lg text-gray-700"><strong>Execution:</strong> <span v-html="exercise.execution"></span></p>
-      <p class="text-lg text-gray-700"><strong>Rest:</strong> {{ exercise.rest }} seconds</p>
-      <p class="text-lg text-gray-700"><strong>Created At:</strong> {{ formatDate(exercise.created_at) }}</p>
-      <p class="text-lg text-gray-700"><strong>Updated At:</strong> {{ formatDate(exercise.updated_at) }}</p>
+      <div class="space-y-4">
+        <p class="text-lg text-gray-700"><strong>Type:</strong> <span class="text-gray-500">{{ exercise.type }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Equipment:</strong> <span class="text-gray-500">{{ exercise.equipment }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Execution:</strong> <span class="text-gray-500" v-html="exercise.execution"></span></p>
+        <p class="text-lg text-gray-700"><strong>Rest:</strong> <span class="text-gray-500">{{ exercise.rest }} seconds</span></p>
+        <p class="text-lg text-gray-700"><strong>Created At:</strong> <span class="text-gray-500">{{ formatDate(exercise.created_at) }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Updated At:</strong> <span class="text-gray-500">{{ formatDate(exercise.updated_at) }}</span></p>
+      </div>
       <router-link to="/application/exercises" class="mt-6 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-500 transition duration-200">
         Back to Exercises
       </router-link>
@@ -70,5 +71,21 @@ export default {
 body {
   font-family: 'Roboto', sans-serif;
 }
-</style>
 
+h1 {
+  border-bottom: 2px solid #3b82f6; /* Add a bottom border to the title */
+  padding-bottom: 10px; /* Space below the title */
+}
+
+strong {
+  color: #1f2937; /* Color for strong text */
+}
+
+.text-gray-500 {
+  font-weight: 500; /* Slightly bolder text for sub-details */
+}
+
+.bg-blue-600 {
+  background-color: #3b82f6; /* Consistent blue color for buttons */
+}
+</style>
