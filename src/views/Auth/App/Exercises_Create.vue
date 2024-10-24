@@ -8,7 +8,8 @@ let form = ref({
   type: '',
   equipment: '',
   execution: '',
-  rest: ''
+  rest: '',
+  link: '' // Add link field
 });
 
 const errors = ref({
@@ -16,7 +17,8 @@ const errors = ref({
   type: '',
   equipment: '',
   execution: '',
-  rest: ''
+  rest: '',
+  link: '' // Add link field
 });
 
 const validateForm = () => {
@@ -26,7 +28,8 @@ const validateForm = () => {
     type: '',
     equipment: '',
     execution: '',
-    rest: ''
+    rest: '',
+    link: '' // Add link field
   };
 
   if (!form.value.name) {
@@ -49,6 +52,13 @@ const validateForm = () => {
     errors.value.rest = 'Rest time is required';
     valid = false;
   }
+  if (!form.value.link) {
+    errors.value.link = 'Exercise link is required';
+    valid = false;
+  } else if (!form.value.link.includes('youtube.com') && !form.value.link.includes('youtu.be')) {
+    errors.value.link = 'Exercise link must be a YouTube link';
+    valid = false;
+  }
 
   return valid;
 };
@@ -67,6 +77,7 @@ const createExercise = async () => {
         equipment: form.value.equipment,
         execution: form.value.execution,
         rest: form.value.rest,
+        link: form.value.link, // Add link field
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
@@ -82,7 +93,8 @@ const createExercise = async () => {
       type: '',
       equipment: '',
       execution: '',
-      rest: ''
+      rest: '',
+      link: '' // Reset link field
     };
   }
 };
@@ -167,6 +179,21 @@ const createExercise = async () => {
               required
             />
             <span class="text-red-500 text-sm">{{ errors.rest }}</span>
+          </div>
+
+          <div class="mb-6">
+            <label class="block mb-2 uppercase font-bold text-xs text-gray-700" for="link">
+              Exercise Link
+            </label>
+            <input
+              v-model="form.link"
+              type="url"
+              class="border border-gray-400 p-2 w-full rounded-lg"
+              name="link"
+              id="link"
+              required
+            />
+            <span class="text-red-500 text-sm">{{ errors.link }}</span>
           </div>
 
           <div class="mb-6">
