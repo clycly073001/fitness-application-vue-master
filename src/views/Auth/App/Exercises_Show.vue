@@ -51,8 +51,8 @@ const getYouTubeEmbedUrl = (url) => {
         <p class="text-lg text-gray-700"><strong>Execution:</strong> <span class="text-gray-500" v-html="exercise.execution"></span></p>
         <p class="text-lg text-gray-700"><strong>Rest:</strong> <span class="text-gray-500">{{ exercise.rest }} seconds</span></p>
         <p class="text-lg text-gray-700"><strong>Link:</strong> <span class="text-gray-500"><a :href="exercise.link" target="_blank">{{ exercise.link }}</a></span></p>
-        <div v-if="exercise.link && (exercise.link.includes('youtube.com') || exercise.link.includes('youtu.be') || exercise.link.includes('shorts'))">
-          <iframe :src="getYouTubeEmbedUrl(exercise.link)" frameborder="0" allowfullscreen class="w-full h-60"></iframe>
+        <div v-if="exercise.link && (exercise.link.includes('youtube.com') || exercise.link.includes('youtu.be') || exercise.link.includes('shorts'))" class="iframe-container">
+          <iframe :src="getYouTubeEmbedUrl(exercise.link)" frameborder="0" allowfullscreen class="iframe-phone-view"></iframe>
         </div>
         <p class="text-lg text-gray-700"><strong>Created At:</strong> <span class="text-gray-500">{{ formatDate(exercise.created_at) }}</span></p>
         <p class="text-lg text-gray-700"><strong>Updated At:</strong> <span class="text-gray-500">{{ formatDate(exercise.updated_at) }}</span></p>
@@ -105,5 +105,20 @@ strong {
 
 .bg-blue-600 {
   background-color: #3b82f6; /* Consistent blue color for buttons */
+}
+
+.iframe-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.iframe-phone-view {
+  width: 360px; /* Width of a typical phone */
+  height: 640px; /* Height of a typical phone */
+  border: none;
+  border-radius: 10px; /* Optional: Add rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add a shadow for better appearance */
 }
 </style>
