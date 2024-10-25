@@ -40,15 +40,11 @@ const login = async () => {
   const passwordMatch = await bcrypt.compare(data.value.password, user.password);
 
   if (passwordMatch) {
-    if (user.role === 'admin') {
-      swal("Logged In", "Logged in successfully!", "success");
-      // Save user session
-      localStorage.setItem('user', JSON.stringify(user));
-      // Redirect to /application
-      router.push('/application/dashboard');
-    } else {
-      swal("Error", "You do not have the necessary permissions to log in.", "error");
-    }
+    swal("Logged In", "Logged in successfully!", "success");
+    // Save user session
+    localStorage.setItem('user', JSON.stringify(user));
+    // Redirect to /application
+    router.push('/application/dashboard');
   } else {
     swal("Error", "Invalid email or password.", "error");
   }
@@ -79,8 +75,7 @@ const login = async () => {
       </div>
     </form>
     <p class="mt-4">
-      Don't have an account? 
-      <router-link to="/register" class="text-blue-500 hover:underline">Create Account</router-link>
+      Don't have an account? Ask the admin to create an account for you.
     </p>
   </div>
 </template>

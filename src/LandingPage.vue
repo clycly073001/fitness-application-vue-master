@@ -14,9 +14,9 @@ import { RouterLink } from 'vue-router';
       <RouterLink to="/login">
         <button class="bg-blue-500 text-white px-4 py-2 rounded mr-4 hover:bg-blue-700">Login</button>
       </RouterLink>
-      <RouterLink to="/register">
+      <!-- <RouterLink to="/register">
         <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">Register</button>
-      </RouterLink>
+      </RouterLink> -->
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl px-4">
