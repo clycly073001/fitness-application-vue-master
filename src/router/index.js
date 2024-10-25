@@ -14,6 +14,7 @@ import Exercises_Show from '@/views/Auth/App/Exercises_Show.vue';
 import Exercises_Edit from '@/views/Auth/App/Exercises_Edit.vue';
 import Users_Show from '@/views/Auth/App/Users_Show.vue';
 import Users_Create from '@/views/Auth/App/Users_Create.vue';
+import Users_Edit from '@/views/Auth/App/Users_Edit.vue'; // Import Users_Edit component
 import Create_Item from '@/views/Auth/App/Create_Item.vue'; // Ensure this import is correct
 import Shop_Item_Show from '@/views/Auth/App/Shop_Item_Show.vue';
 import Edit_Item from '@/views/Auth/App/Edit_Item.vue';
@@ -60,6 +61,11 @@ const routes = [
         path: 'users/:id',
         name: 'ShowUser',
         component: Users_Show
+      },
+      {
+        path: 'users/edit/:id',
+        name: 'EditUser',
+        component: Users_Edit // Add route for editing a user
       },
       {
         path: 'exercises',

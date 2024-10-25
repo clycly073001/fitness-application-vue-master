@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import swal from 'sweetalert';
 import { useRouter } from 'vue-router';
@@ -10,9 +10,10 @@ const pageSize = 9;
 const totalUsers = ref(0);
 const totalPages = ref(0);
 const loading = ref(true); // Add loading state
+const searchQuery = ref(''); // Add search query
 const router = useRouter();
 
-const fetchUsers = async (page) => {
+const fetchUsers = async (page, query = '') => {
   loading.value = true; // Set loading to true when fetching data
   const start = (page - 1) * pageSize;
   const end = start + pageSize - 1;
@@ -21,6 +22,7 @@ const fetchUsers = async (page) => {
     .from('users')
     .select('*', { count: 'exact' })
     .eq('role', 'user') // Filter users with role 'user'
+    .ilike('name', `%${query}%`) // Add search query filter
     .range(start, end);
 
   if (error) {
@@ -72,21 +74,51 @@ const renewMembership = async (userId) => {
     swal("Error", "An error occurred while renewing the membership. Please try again.", "error");
   } else {
     swal("Success", "Membership renewed successfully!", "success");
-    fetchUsers(currentPage.value); // Refresh users after renewal
+    fetchUsers(currentPage.value, searchQuery.value); // Refresh users after renewal
   }
+};
+
+const deleteUser = async (userId) => {
+  const { error } = await supabase
+    .from('users')
+    .delete()
+    .eq('id', userId);
+
+  if (error) {
+    console.error('Error:', error);
+    swal("Error", "An error occurred while deleting the user. Please try again.", "error");
+  } else {
+    swal("Success", "User deleted successfully!", "success");
+    fetchUsers(currentPage.value, searchQuery.value); // Refresh users after deletion
+  }
+};
+
+const confirmDeleteUser = (userId) => {
+  swal({
+    title: "Are you sure?",
+    text: "Once deleted, you will not be able to recover this user.",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then((willDelete) => {
+    if (willDelete) {
+      deleteUser(userId);
+    }
+  });
 };
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value += 1;
-    fetchUsers(currentPage.value);
+    fetchUsers(currentPage.value, searchQuery.value);
   }
 };
 
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value -= 1;
-    fetchUsers(currentPage.value);
+    fetchUsers(currentPage.value, searchQuery.value);
   }
 };
 
@@ -98,8 +130,17 @@ const goToCreateUser = () => {
   router.push('/application/users/create');
 };
 
+const editUser = (userId) => {
+  router.push(`/application/users/edit/${userId}`);
+};
+
 onMounted(() => {
   fetchUsers(currentPage.value);
+});
+
+watch(searchQuery, (newQuery) => {
+  currentPage.value = 1; // Reset to first page when search query changes
+  fetchUsers(currentPage.value, newQuery);
 });
 </script>
 
@@ -114,6 +155,16 @@ onMounted(() => {
       >
         Add Member
       </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mb-6">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search by name"
+        class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
     </div>
     
     <!-- Loader -->
@@ -150,6 +201,18 @@ onMounted(() => {
                 class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow hover:bg-blue-400 transition-all duration-200"
               >
                 Renew Membership
+              </button>
+            </div>
+            <div class="flex justify-between items-center mt-4">
+              <button
+                @click.stop="editUser(user.id)" 
+              >
+                <img src="/public/item_images/edit.png" alt="">
+              </button>
+              <button
+                @click.stop="confirmDeleteUser(user.id)" 
+              >
+              <img src="/public/item_images/delete.png" alt="">
               </button>
             </div>
           </li>

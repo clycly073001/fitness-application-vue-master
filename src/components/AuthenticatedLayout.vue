@@ -2,8 +2,17 @@
 import { RouterLink, RouterView, useRouter } from 'vue-router';
 import { supabase } from '@/lib/supabaseClient';
 import swal from 'sweetalert';
+import { ref, onMounted } from 'vue';
 
 const router = useRouter();
+const user = ref(null);
+
+onMounted(() => {
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    user.value = JSON.parse(storedUser);
+  }
+});
 
 const logout = async () => {
   const willLogout = await swal({
@@ -58,7 +67,7 @@ const logout = async () => {
         <RouterLink to="/application/users" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Members</RouterLink>
         <RouterLink to="/application/exercises" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Exercises</RouterLink>
         <RouterLink to="/application/nutrition" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Nutrition</RouterLink>
-        <RouterLink to="/application/shop" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Shop</RouterLink>
+        <RouterLink v-if="user && user.role !== 'user'" to="/application/shop" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Shop</RouterLink>
         <button @click="logout" class="py-2 px-4 rounded hover:bg-gray-700 flex items-center justify-center">
           <img src="@/assets/exit.png" alt="Logout" class="w-6 h-6" />
         </button>
