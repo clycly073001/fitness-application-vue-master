@@ -80,7 +80,7 @@ onMounted(() => {
   <div v-else-if="item" class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg mt-6">
     <h1 class="text-3xl font-bold mb-4">{{ item.name }}</h1>
     <p class="text-gray-700 mb-4">{{ item.description }}</p>
-    <p class="text-gray-900 font-bold mb-4">Price: ${{ item.price.toFixed(2) }}</p>
+    <p class="text-gray-900 font-bold mb-4">Price: ₱{{ item.price.toFixed(2) }}</p>
     <p class="text-gray-600 mb-4">Quantity: {{ item.quantity }}</p>
     <p class="text-gray-500">Created At: {{ new Date(item.created_at).toLocaleString() }}</p>
     <div class="flex space-x-4 mt-4">

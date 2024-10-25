@@ -15,6 +15,7 @@ const selectedItem = ref(null); // Add selectedItem ref
 const users = ref([]); // Add users ref
 const searchQuery = ref(''); // Add searchQuery ref
 const selectedUsers = ref([]); // Add selectedUsers ref
+const userQuantities = ref({}); // Add userQuantities ref
 
 const soldItemsCurrentPage = ref(1); // Add current page for sold items
 const soldItemsPerPage = 5; // Maximum of 5 sold items per page
@@ -39,7 +40,7 @@ const fetchItems = async (page = 1) => {
 const fetchSoldItems = async () => {
   let { data, error } = await supabase
     .from('sold_items_to_users')
-    .select('id, created_at, item_id, user_id, items_for_sale(name), users(name)');
+    .select('id, created_at, item_id, user_id, quantity, items_for_sale(name), users(name)');
 
   if (error) {
     console.error('Error:', error);
@@ -93,6 +94,7 @@ const closeModal = () => {
   showModal.value = false;
   selectedItem.value = null;
   selectedUsers.value = []; // Clear selected users when closing the modal
+  userQuantities.value = {}; // Clear user quantities when closing the modal
 };
 
 const sellItemToUsers = async () => {
@@ -102,7 +104,8 @@ const sellItemToUsers = async () => {
 
   const records = selectedUsers.value.map(userId => ({
     item_id: selectedItem.value.id,
-    user_id: userId
+    user_id: userId,
+    quantity: userQuantities.value[userId] || 1 // Default to 1 if not specified
   }));
 
   const { error: insertError } = await supabase
@@ -116,7 +119,8 @@ const sellItemToUsers = async () => {
   }
 
   // Update the quantity of the item
-  const newQuantity = selectedItem.value.quantity - selectedUsers.value.length;
+  const totalQuantitySold = selectedUsers.value.reduce((sum, userId) => sum + (userQuantities.value[userId] || 1), 0);
+  const newQuantity = selectedItem.value.quantity - totalQuantitySold;
   const { error: updateError } = await supabase
     .from('items_for_sale')
     .update({ quantity: newQuantity })
@@ -168,7 +172,7 @@ const goToShowItem = (id) => {
         <div v-for="item in itemsForSale" :key="item.id" class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
           <button @click="goToShowItem(item.id)" class="w-full text-left">
             <h2 class="text-xl font-semibold mb-2 text-blue-600 hover:underline">{{ item.name }}</h2> 
-            <p class="text-gray-900 font-bold mb-2">${{ item.price.toFixed(2) }}</p>
+            <p class="text-gray-900 font-bold mb-2">₱{{ item.price.toFixed(2) }}</p>
             <p class="text-gray-600">Quantity: {{ item.quantity }}</p>
           </button>
           <button 
@@ -206,6 +210,7 @@ const goToShowItem = (id) => {
           <li v-for="soldItem in paginatedSoldItems" :key="soldItem.id" class="bg-white p-4 rounded-lg shadow-md">
             <p class="text-lg font-semibold text-gray-800">Item: {{ soldItem.items_for_sale.name }}</p>
             <p class="text-gray-600">Sold to: {{ soldItem.users.name }}</p>
+            <p class="text-gray-600">Quantity: {{ soldItem.quantity }}</p>
             <p class="text-gray-500 text-sm">Date: {{ new Date(soldItem.created_at).toLocaleString() }}</p>
           </li>
         </ul>
@@ -246,6 +251,13 @@ const goToShowItem = (id) => {
           <li v-for="user in users" :key="user.id" class="flex items-center mb-2">
             <input type="checkbox" :id="`user-${user.id}`" v-model="selectedUsers" :value="user.id" class="mr-2">
             <label :for="`user-${user.id}`" class="text-gray-700">{{ user.name }}</label>
+            <input 
+              type="number" 
+              v-model="userQuantities[user.id]" 
+              min="1" 
+              class="ml-2 w-16 p-1 border border-gray-300 rounded-lg"
+              placeholder="Qty"
+            />
           </li>
         </ul>
         <div class="flex justify-end mt-4">
