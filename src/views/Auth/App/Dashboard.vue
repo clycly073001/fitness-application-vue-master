@@ -6,7 +6,6 @@ import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale } from 'chart.js';
 import QRCode from 'qrcode';
 import swal from 'sweetalert';
-import { QrcodeStream } from 'vue-qrcode-reader';
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale);
 
@@ -23,7 +22,6 @@ const weightDistribution = ref([]);
 const heightDistribution = ref([]);
 const timeInQRCode = ref('');
 const timeOutQRCode = ref('');
-const showCamera = ref(false);
 
 const calculateMembershipStatistics = async () => {
   const now = new Date();
@@ -111,83 +109,14 @@ const calculateExerciseStatistics = async () => {
 };
 
 const generateQRCode = async (type) => {
-  const qrCodeDataUrl = await QRCode.toDataURL(type);
+  const baseUrl = 'https://fitness-application-vue-master.vercel.app/application/dashboard';
+  const url = `${baseUrl}/${type}`;
+  const qrCodeDataUrl = await QRCode.toDataURL(url);
   if (type === 'time_in') {
     timeInQRCode.value = qrCodeDataUrl;
   } else if (type === 'time_out') {
     timeOutQRCode.value = qrCodeDataUrl;
   }
-};
-
-const recordAttendance = async (type) => {
-  const storedUser = localStorage.getItem('user');
-  if (!storedUser) {
-    swal("Error", "User not found. Please log in again.", "error");
-    return;
-  }
-
-  const userId = JSON.parse(storedUser).id;
-  const now = new Date().toISOString();
-
-  if (type === 'time_in') {
-    const { data, error } = await supabase
-      .from('attendance')
-      .insert([
-        { user_id: userId, time_in: now, date: new Date().toISOString().split('T')[0] },
-      ])
-      .select();
-
-    if (error) {
-      console.error('Error recording time in:', error);
-      swal("Error", "An error occurred while recording time in. Please try again.", "error");
-    } else {
-      swal("Success", "Time in recorded successfully!", "success");
-    }
-  } else if (type === 'time_out') {
-    const { data: attendanceRecords, error } = await supabase
-      .from('attendance')
-      .select('*')
-      .eq('user_id', userId)
-      .is('time_out', null)
-      .order('time_in', { ascending: false })
-      .limit(1);
-
-    if (error) {
-      console.error('Error fetching attendance record:', error);
-      swal("Error", "An error occurred while fetching attendance record. Please try again.", "error");
-      return;
-    }
-
-    if (attendanceRecords.length > 0) {
-      const attendanceId = attendanceRecords[0].id;
-      const { data, error } = await supabase
-        .from('attendance')
-        .update({ time_out: now })
-        .eq('id', attendanceId)
-        .select();
-
-      if (error) {
-        console.error('Error recording time out:', error);
-        swal("Error", "An error occurred while recording time out. Please try again.", "error");
-      } else {
-        swal("Success", "Time out recorded successfully!", "success");
-      }
-    } else {
-      swal("Error", "No time in record found for today.", "error");
-    }
-  }
-};
-
-const handleScan = async (result) => {
-  if (!result) return;
-
-  await recordAttendance(result);
-
-  showCamera.value = false;
-};
-
-const toggleCamera = () => {
-  showCamera.value = !showCamera.value;
 };
 
 onMounted(async () => {
@@ -252,9 +181,6 @@ onMounted(async () => {
             <img :src="timeOutQRCode" alt="Time Out QR Code" class="w-40 h-40 mt-2">
           </div>
         </div>
-        <button @click="toggleCamera" class="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4">
-          Scan QR Code
-        </button>
       </div>
       
       <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
@@ -321,16 +247,6 @@ onMounted(async () => {
             }"
           />
         </div>
-      </div>
-    </div>
-
-    <div v-if="showCamera" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-4">Scan QR Code</h2>
-        <QrcodeStream @decode="handleScan" />
-        <button @click="toggleCamera" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-gray-400 transition-all duration-200">
-          Close
-        </button>
       </div>
     </div>
   </div>

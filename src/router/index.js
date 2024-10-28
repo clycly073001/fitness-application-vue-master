@@ -1,4 +1,3 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 import LandingPage from '@/LandingPage.vue';
 import Login from '@/views/Auth/Login.vue';
@@ -19,6 +18,8 @@ import Create_Item from '@/views/Auth/App/Create_Item.vue'; // Ensure this impor
 import Shop_Item_Show from '@/views/Auth/App/Shop_Item_Show.vue';
 import Edit_Item from '@/views/Auth/App/Edit_Item.vue';
 import Attendance from '@/views/Auth/App/Attendance.vue';
+import swal from 'sweetalert';
+import { supabase } from '@/lib/supabaseClient';
 
 const routes = [
   {
@@ -49,44 +50,93 @@ const routes = [
         component: Dashboard
       },
       {
-        path: 'users',
-        name: 'Users',
-        component: Users
+        path: 'dashboard/time_in',
+        name: 'TimeIn',
+        component: Dashboard,
+        beforeEnter: (to, from, next) => {
+          const recordAttendance = async () => {
+            const storedUser = localStorage.getItem('user');
+            if (!storedUser) {
+              swal("Error", "User not found. Please log in again.", "error");
+              return;
+            }
+
+            const userId = JSON.parse(storedUser).id;
+            const now = new Date().toISOString();
+
+            const { data, error } = await supabase
+              .from('attendance')
+              .insert([
+                { user_id: userId, time_in: now, date: new Date().toISOString().split('T')[0] },
+              ])
+              .select();
+
+            if (error) {
+              console.error('Error recording time in:', error);
+              swal("Error", "An error occurred while recording time in. Please try again.", "error");
+            } else {
+              swal("Success", "Time in recorded successfully!", "success");
+            }
+          };
+
+          recordAttendance().then(() => next());
+        }
       },
       {
-        path: 'users/create',
-        name: 'CreateUser',
-        component: Users_Create
-      },
-      {
-        path: 'users/:id',
-        name: 'ShowUser',
-        component: Users_Show
-      },
-      {
-        path: 'users/edit/:id',
-        name: 'EditUser',
-        component: Users_Edit // Add route for editing a user
+        path: 'dashboard/time_out',
+        name: 'TimeOut',
+        component: Dashboard,
+        beforeEnter: (to, from, next) => {
+          const recordAttendance = async () => {
+            const storedUser = localStorage.getItem('user');
+            if (!storedUser) {
+              swal("Error", "User not found. Please log in again.", "error");
+              return;
+            }
+
+            const userId = JSON.parse(storedUser).id;
+            const now = new Date().toISOString();
+
+            const { data: attendanceRecords, error } = await supabase
+              .from('attendance')
+              .select('*')
+              .eq('user_id', userId)
+              .is('time_out', null)
+              .order('time_in', { ascending: false })
+              .limit(1);
+
+            if (error) {
+              console.error('Error fetching attendance record:', error);
+              swal("Error", "An error occurred while fetching attendance record. Please try again.", "error");
+              return;
+            }
+
+            if (attendanceRecords.length > 0) {
+              const attendanceId = attendanceRecords[0].id;
+              const { data, error } = await supabase
+                .from('attendance')
+                .update({ time_out: now })
+                .eq('id', attendanceId)
+                .select();
+
+              if (error) {
+                console.error('Error recording time out:', error);
+                swal("Error", "An error occurred while recording time out. Please try again.", "error");
+              } else {
+                swal("Success", "Time out recorded successfully!", "success");
+              }
+            } else {
+              swal("Error", "No time in record found for today.", "error");
+            }
+          };
+
+          recordAttendance().then(() => next());
+        }
       },
       {
         path: 'exercises',
         name: 'Exercises',
         component: Exercises
-      },
-      {
-        path: 'exercises/create',
-        name: 'CreateExercise',
-        component: Exercises_Create
-      },
-      {
-        path: 'exercises/:id',
-        name: 'ShowExercise',
-        component: Exercises_Show
-      },
-      {
-        path: 'exercises/edit/:id',
-        name: 'EditExercise',
-        component: Exercises_Edit
       },
       {
         path: 'nutrition',
@@ -99,49 +149,67 @@ const routes = [
         component: Shop
       },
       {
+        path: 'users',
+        name: 'Users',
+        component: Users
+      },
+      {
+        path: 'exercises/create',
+        name: 'Exercises_Create',
+        component: Exercises_Create
+      },
+      {
+        path: 'exercises/:id',
+        name: 'Exercises_Show',
+        component: Exercises_Show
+      },
+      {
+        path: 'exercises/:id/edit',
+        name: 'Exercises_Edit',
+        component: Exercises_Edit
+      },
+      {
+        path: 'users/:id',
+        name: 'Users_Show',
+        component: Users_Show
+      },
+      {
+        path: 'users/create',
+        name: 'Users_Create',
+        component: Users_Create
+      },
+      {
+        path: 'users/:id/edit',
+        name: 'Users_Edit',
+        component: Users_Edit
+      },
+      {
         path: 'shop/create',
-        name: 'CreateItem', 
+        name: 'Create_Item',
         component: Create_Item
       },
       {
         path: 'shop/:id',
-        name: 'ShowItem',
+        name: 'Shop_Item_Show',
         component: Shop_Item_Show
       },
       {
-        path: 'shop/edit/:id',
-        name: 'EditItem',
+        path: 'shop/:id/edit',
+        name: 'Edit_Item',
         component: Edit_Item
       },
       {
         path: 'attendance',
         name: 'Attendance',
         component: Attendance
-      },
-      {
-        path: '/:pathMatch(.*)*',
-        name: 'NotFound',
-        component: Dashboard
-      },
-    ],
-    meta: { requiresAuth: true }
-  },
+      }
+    ]
+  }
 ];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
-});
-
-router.beforeEach((to, from, next) => {
-  const user = localStorage.getItem('user');
-  if (to.matched.some(record => record.meta.requiresAuth) && !user) {
-    next({ name: 'login' });
-  } else if (to.matched.some(record => record.meta.requiresUnauth) && user) {
-    next({ name: 'NotFound' });
-  } else {
-    next();
-  }
 });
 
 export default router;
