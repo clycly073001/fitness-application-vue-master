@@ -160,7 +160,7 @@ const navigateTo = (routeName) => {
 
       
       <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-        <h2 class="text-xl font-bold mb-2 text-blue-600">Age Distribution</h2>
+        <h2 class="text-xl font-bold mb-2 text-blue-600">Members Age Distribution</h2>
         <div class="chart-container">
           <Line
             :data="{
@@ -182,7 +182,7 @@ const navigateTo = (routeName) => {
       </div>
 
       <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-        <h2 class="text-xl font-bold mb-2 text-blue-600">Weight Distribution</h2>
+        <h2 class="text-xl font-bold mb-2 text-blue-600">Members Weight Distribution</h2>
         <div class="chart-container">
           <Line
             :data="{
@@ -204,7 +204,7 @@ const navigateTo = (routeName) => {
       </div>
 
       <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-        <h2 class="text-xl font-bold mb-2 text-blue-600">Height Distribution</h2>
+        <h2 class="text-xl font-bold mb-2 text-blue-600">Members Height Distribution</h2>
         <div class="chart-container">
           <Line
             :data="{

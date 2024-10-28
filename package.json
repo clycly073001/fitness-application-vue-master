@@ -11,6 +11,7 @@
   "dependencies": {
     "@ashwamegh/vue-link-preview": "^3.3.0",
     "@supabase/supabase-js": "^2.45.4",
+    "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.4",
     "sweetalert": "^2.1.2",
