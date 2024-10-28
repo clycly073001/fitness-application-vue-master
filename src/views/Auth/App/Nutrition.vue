@@ -4,39 +4,45 @@ import axios from 'axios';
 
 const apiKey = '11b14482eaa440f8847a3eb904175ce7';
 const query = ref('');
-const diet = ref('');
-const type = ref('');
-const minCarbs = ref('');
-const maxCarbs = ref('');
-const minProtein = ref('');
-const maxProtein = ref('');
-const minCalories = ref('');
-const maxCalories = ref('');
-const minFat = ref('');
-const maxFat = ref('');
 const recipes = ref([]);
+const loading = ref(false); // Add loading state
 
 const searchRecipes = async () => {
+  loading.value = true; // Set loading to true when search starts
   try {
     const response = await axios.get('https://api.spoonacular.com/recipes/complexSearch', {
       params: {
         apiKey,
         query: query.value,
-        diet: diet.value,
-        type: type.value,
-        minCarbs: minCarbs.value,
-        maxCarbs: maxCarbs.value,
-        minProtein: minProtein.value,
-        maxProtein: maxProtein.value,
-        minCalories: minCalories.value,
-        maxCalories: maxCalories.value,
-        minFat: minFat.value,
-        maxFat: maxFat.value,
+        addRecipeInformation: true,
+        addRecipeNutrition: true,
       },
     });
-    recipes.value = response.data.results;
+
+    const detailedRecipes = await Promise.all(
+      response.data.results.map(async (recipe) => {
+        const [nutritionResponse, tasteResponse] = await Promise.all([
+          axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
+            params: { apiKey },
+          }),
+          axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/tasteWidget.json`, {
+            params: { apiKey },
+          }),
+        ]);
+
+        return {
+          ...recipe,
+          nutrition: nutritionResponse.data,
+          taste: tasteResponse.data,
+        };
+      })
+    );
+
+    recipes.value = detailedRecipes;
   } catch (error) {
     console.error('Error fetching recipes:', error);
+  } finally {
+    loading.value = false; // Set loading to false when search completes
   }
 };
 </script>
@@ -44,53 +50,13 @@ const searchRecipes = async () => {
 <template>
   <div class="min-h-screen bg-gray-50 p-6">
     <h1 class="text-3xl font-bold mb-4">Nutrition</h1>
-    <p>Track your nutrition here.</p>
+    <p>Search for foods according to your liking.</p>
 
     <div class="mt-6">
       <form @submit.prevent="searchRecipes" class="space-y-4">
         <div>
           <label class="block text-gray-700 text-sm font-bold mb-2" for="query">Query</label>
           <input v-model="query" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="query" type="text" placeholder="e.g., chicken">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="diet">Diet</label>
-          <input v-model="diet" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="diet" type="text" placeholder="e.g., vegetarian">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="type">Type</label>
-          <input v-model="type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="type" type="text" placeholder="e.g., main course">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="minCarbs">Min Carbs</label>
-          <input v-model="minCarbs" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="minCarbs" type="number" placeholder="e.g., 10">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="maxCarbs">Max Carbs</label>
-          <input v-model="maxCarbs" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="maxCarbs" type="number" placeholder="e.g., 50">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="minProtein">Min Protein</label>
-          <input v-model="minProtein" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="minProtein" type="number" placeholder="e.g., 10">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="maxProtein">Max Protein</label>
-          <input v-model="maxProtein" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="maxProtein" type="number" placeholder="e.g., 50">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="minCalories">Min Calories</label>
-          <input v-model="minCalories" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="minCalories" type="number" placeholder="e.g., 100">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="maxCalories">Max Calories</label>
-          <input v-model="maxCalories" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="maxCalories" type="number" placeholder="e.g., 500">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="minFat">Min Fat</label>
-          <input v-model="minFat" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="minFat" type="number" placeholder="e.g., 5">
-        </div>
-        <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="maxFat">Max Fat</label>
-          <input v-model="maxFat" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="maxFat" type="number" placeholder="e.g., 20">
         </div>
         <div>
           <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
@@ -102,13 +68,35 @@ const searchRecipes = async () => {
 
     <div class="mt-8">
       <h2 class="text-2xl font-bold mb-4">Recipes</h2>
-      <div v-if="recipes.length">
-        <ul class="space-y-4">
-          <li v-for="recipe in recipes" :key="recipe.id" class="bg-white p-4 rounded-lg shadow-md">
+      <div v-if="loading" class="flex justify-center items-center">
+        <div class="loader"></div>
+      </div>
+      <div v-else-if="recipes.length">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div v-for="recipe in recipes" :key="recipe.id" class="bg-white p-4 rounded-lg shadow-md">
             <h3 class="text-xl font-semibold text-gray-800">{{ recipe.title }}</h3>
-            <img :src="recipe.image" :alt="recipe.title" class="w-full h-auto rounded-lg mt-2">
-          </li>
-        </ul>
+            <img :src="recipe.image" :alt="recipe.title" class="w-full h-40 object-cover rounded-lg mt-2">
+            <p class="mt-2 text-gray-600" v-html="recipe.summary"></p>
+            <div class="mt-4">
+              <h4 class="text-lg font-semibold text-gray-800">Nutrition</h4>
+              <ul class="list-disc list-inside">
+                <li v-for="nutrient in recipe.nutrition.nutrients" :key="nutrient.name">{{ nutrient.name }}: {{ nutrient.amount }}{{ nutrient.unit }} ({{ nutrient.percentOfDailyNeeds }}% DV)</li>
+              </ul>
+            </div>
+            <div class="mt-4">
+              <h4 class="text-lg font-semibold text-gray-800">Taste</h4>
+              <ul class="list-disc list-inside">
+                <li>Sweetness: {{ recipe.taste.sweetness }}</li>
+                <li>Saltiness: {{ recipe.taste.saltiness }}</li>
+                <li>Sourness: {{ recipe.taste.sourness }}</li>
+                <li>Bitterness: {{ recipe.taste.bitterness }}</li>
+                <li>Savoriness: {{ recipe.taste.savoriness }}</li>
+                <li>Fattiness: {{ recipe.taste.fattiness }}</li>
+                <li>Spiciness: {{ recipe.taste.spiciness }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
       <div v-else>
         <p class="text-center text-lg text-gray-500">No recipes found.</p>
@@ -124,5 +112,35 @@ const searchRecipes = async () => {
 .grid {
   display: grid;
   gap: 1.5rem;
+}
+.loader {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  color: #514b82;
+  background:
+    linear-gradient(currentColor 0 0) right  /51% 100%,
+    linear-gradient(currentColor 0 0) bottom /100% 51%;
+  background-repeat: no-repeat;
+  animation: l17-0 2s infinite linear .25s;
+}
+.loader::before{
+  content:"";
+  width: 50%;
+  height: 50%;
+  background: currentColor;
+  transform-origin: 10% 10%;
+  animation: l17-1 .5s infinite linear;
+}
+@keyframes l17-0 {
+  0%   ,12.49% {transform: rotate(0deg)}
+  12.5%,37.49% {transform: rotate(90deg)}
+  37.5%,62.49% {transform: rotate(180deg)}
+  62.5%,87.49% {transform: rotate(270deg)}
+  87.5%,100%   {transform: rotate(360deg)}
+}
+@keyframes l17-1 {
+  0%      {transform: perspective(80px) rotate3d(-1,1,0, 0)}
+  80%,100%{transform: perspective(80px) rotate3d(-1,1,0,-360deg)}
 }
 </style>
