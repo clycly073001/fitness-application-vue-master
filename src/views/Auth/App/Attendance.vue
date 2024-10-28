@@ -31,7 +31,13 @@ const fetchAttendanceRecords = async () => {
 };
 
 const recordAttendance = async (type) => {
-  const userId = user.value.id;
+  const storedUser = localStorage.getItem('user');
+  if (!storedUser) {
+    swal("Error", "User not found. Please log in again.", "error");
+    return;
+  }
+
+  const userId = JSON.parse(storedUser).id;
   const now = new Date().toISOString();
 
   if (type === 'time_in') {
