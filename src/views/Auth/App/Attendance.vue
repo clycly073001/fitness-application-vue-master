@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import { useRoute } from 'vue-router';
 import { QrcodeStream } from 'vue-qrcode-reader';
+import swal from 'sweetalert';
 
 const user = ref(null);
 const attendanceRecords = ref([]);
@@ -43,8 +44,9 @@ const recordAttendance = async (type) => {
 
     if (error) {
       console.error('Error recording time in:', error);
+      swal("Error", "An error occurred while recording time in. Please try again.", "error");
     } else {
-      alert('Time in recorded successfully');
+      swal("Success", "Time in recorded successfully!", "success");
     }
   } else if (type === 'time_out') {
     const { data: attendanceRecords, error } = await supabase
@@ -57,6 +59,7 @@ const recordAttendance = async (type) => {
 
     if (error) {
       console.error('Error fetching attendance record:', error);
+      swal("Error", "An error occurred while fetching attendance record. Please try again.", "error");
       return;
     }
 
@@ -70,11 +73,12 @@ const recordAttendance = async (type) => {
 
       if (error) {
         console.error('Error recording time out:', error);
+        swal("Error", "An error occurred while recording time out. Please try again.", "error");
       } else {
-        alert('Time out recorded successfully');
+        swal("Success", "Time out recorded successfully!", "success");
       }
     } else {
-      alert('No time in record found for today');
+      swal("Error", "No time in record found for today.", "error");
     }
   }
 };
