@@ -2,9 +2,11 @@
 import { ref, onMounted } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import { useRoute } from 'vue-router';
+import { QrcodeStream } from 'vue-qrcode-reader';
 
 const user = ref(null);
 const attendanceRecords = ref([]);
+const showCamera = ref(false);
 const route = useRoute();
 
 const fetchAttendanceRecords = async () => {
@@ -27,8 +29,7 @@ const fetchAttendanceRecords = async () => {
   }
 };
 
-const recordAttendance = async () => {
-  const type = route.query.type;
+const recordAttendance = async (type) => {
   const userId = user.value.id;
   const now = new Date().toISOString();
 
@@ -78,15 +79,27 @@ const recordAttendance = async () => {
   }
 };
 
+const handleScan = async (result) => {
+  if (!result) return;
+
+  const url = new URL(result);
+  const type = url.searchParams.get('type');
+  await recordAttendance(type);
+
+  showCamera.value = false;
+};
+
 onMounted(() => {
   fetchAttendanceRecords();
-  recordAttendance();
 });
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50 p-6">
     <h1 class="text-3xl font-bold mb-4">Attendance</h1>
+    <button @click="showCamera.value = true" class="bg-blue-500 text-white px-4 py-2 rounded-lg mb-4">
+      Scan QR Code
+    </button>
     <div v-if="attendanceRecords.length">
       <ul class="space-y-4">
         <li v-for="record in attendanceRecords" :key="record.id" class="bg-white p-4 rounded-lg shadow-md">
@@ -98,6 +111,16 @@ onMounted(() => {
     </div>
     <div v-else>
       <p class="text-center text-lg text-gray-500">No attendance records found.</p>
+    </div>
+
+    <div v-if="showCamera" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4">Scan QR Code</h2>
+        <QrcodeStream @decode="handleScan" />
+        <button @click="showCamera.value = false" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-gray-400 transition-all duration-200">
+          Close
+        </button>
+      </div>
     </div>
   </div>
 </template>
