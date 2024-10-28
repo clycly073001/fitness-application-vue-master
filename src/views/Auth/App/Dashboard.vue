@@ -111,8 +111,7 @@ const calculateExerciseStatistics = async () => {
 };
 
 const generateQRCode = async (type) => {
-  const url = `${window.location.origin}/attendance?type=${type}`;
-  const qrCodeDataUrl = await QRCode.toDataURL(url);
+  const qrCodeDataUrl = await QRCode.toDataURL(type);
   if (type === 'time_in') {
     timeInQRCode.value = qrCodeDataUrl;
   } else if (type === 'time_out') {
@@ -182,9 +181,7 @@ const recordAttendance = async (type) => {
 const handleScan = async (result) => {
   if (!result) return;
 
-  const url = new URL(result);
-  const type = url.searchParams.get('type');
-  await recordAttendance(type);
+  await recordAttendance(result);
 
   showCamera.value = false;
 };
