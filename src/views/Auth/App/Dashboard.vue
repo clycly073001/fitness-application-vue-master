@@ -1,10 +1,10 @@
-<!-- src/views/Dashboard.vue -->
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from '@/lib/supabaseClient';
 import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale } from 'chart.js';
+import QRCode from 'qrcode';
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale);
 
@@ -19,6 +19,8 @@ const mostPopularExercises = ref([]);
 const ageDistribution = ref([]);
 const weightDistribution = ref([]);
 const heightDistribution = ref([]);
+const timeInQRCode = ref('');
+const timeOutQRCode = ref('');
 
 const calculateMembershipStatistics = async () => {
   const now = new Date();
@@ -93,8 +95,7 @@ const calculateExerciseStatistics = async () => {
 
   const { data: exercisesUsers, error: exercisesUsersError } = await supabase
     .from('exercises_users')
-    .select('exercise_id, count')
-    .group('exercise_id')
+    .select('exercise_id, count:count(*)')
     .order('count', { ascending: false })
     .limit(5);
 
@@ -106,6 +107,16 @@ const calculateExerciseStatistics = async () => {
   }
 };
 
+const generateQRCode = async (type) => {
+  const url = `${window.location.origin}/attendance?type=${type}`;
+  const qrCodeDataUrl = await QRCode.toDataURL(url);
+  if (type === 'time_in') {
+    timeInQRCode.value = qrCodeDataUrl;
+  } else if (type === 'time_out') {
+    timeOutQRCode.value = qrCodeDataUrl;
+  }
+};
+
 onMounted(async () => {
   const storedUser = localStorage.getItem('user');
   if (storedUser) {
@@ -114,6 +125,8 @@ onMounted(async () => {
 
   await calculateMembershipStatistics();
   await calculateExerciseStatistics();
+  await generateQRCode('time_in');
+  await generateQRCode('time_out');
 });
 
 const navigateTo = (routeName) => {
@@ -158,6 +171,19 @@ const navigateTo = (routeName) => {
         </ul>
       </div>
 
+      <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+        <h2 class="text-xl font-bold mb-2 text-blue-600">Attendance</h2>
+        <div class="flex flex-col items-center">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Time In</h3>
+            <img :src="timeInQRCode" alt="Time In QR Code" class="w-40 h-40 mt-2">
+          </div>
+          <div class="mt-4">
+            <h3 class="text-lg font-semibold text-gray-800">Time Out</h3>
+            <img :src="timeOutQRCode" alt="Time Out QR Code" class="w-40 h-40 mt-2">
+          </div>
+        </div>
+      </div>
       
       <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
         <h2 class="text-xl font-bold mb-2 text-blue-600">Members Age Distribution</h2>
@@ -224,8 +250,6 @@ const navigateTo = (routeName) => {
           />
         </div>
       </div>
-
-    
     </div>
   </div>
 </template>

@@ -14,11 +14,13 @@
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.4",
+    "qrcode": "^1.5.4",
     "sweetalert": "^2.1.2",
     "vee-validate": "^4.13.2",
     "vue": "^3.4.29",
     "vue-chart.js": "^0.2.0",
     "vue-chartjs": "^5.3.1",
+    "vue-qrcode-reader": "^5.5.11",
     "vue-router": "^4.3.3",
     "yup": "^1.4.0"
   },

@@ -18,6 +18,7 @@ import Users_Edit from '@/views/Auth/App/Users_Edit.vue'; // Import Users_Edit c
 import Create_Item from '@/views/Auth/App/Create_Item.vue'; // Ensure this import is correct
 import Shop_Item_Show from '@/views/Auth/App/Shop_Item_Show.vue';
 import Edit_Item from '@/views/Auth/App/Edit_Item.vue';
+import Attendance from '@/views/Auth/App/Attendance.vue';
 
 const routes = [
   {
@@ -111,6 +112,11 @@ const routes = [
         path: 'shop/edit/:id',
         name: 'EditItem',
         component: Edit_Item
+      },
+      {
+        path: 'attendance',
+        name: 'Attendance',
+        component: Attendance
       },
       {
         path: '/:pathMatch(.*)*',
