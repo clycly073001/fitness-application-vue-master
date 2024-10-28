@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import axios from 'axios';
 
-const apiKey = '11b14482eaa440f8847a3eb904175ce7';
+const apiKey = 'be3c7db77b8e4535986e7e694e2d88a2';
 const query = ref('');
 const recipes = ref([]);
 const loading = ref(false); // Add loading state
