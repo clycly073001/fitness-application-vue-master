@@ -169,7 +169,7 @@ onMounted(async () => {
         </ul>
       </div>
 
-      <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+      <div v-if="user && user.role == 'admin'" class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
         <h2 class="text-xl font-bold mb-2 text-blue-600">Attendance</h2>
         <div class="flex flex-col items-center">
           <div>
