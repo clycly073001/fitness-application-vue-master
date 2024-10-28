@@ -83,18 +83,6 @@ const searchRecipes = async () => {
                 <li v-for="nutrient in recipe.nutrition.nutrients" :key="nutrient.name">{{ nutrient.name }}: {{ nutrient.amount }}{{ nutrient.unit }} ({{ nutrient.percentOfDailyNeeds }}% DV)</li>
               </ul>
             </div>
-            <div class="mt-4">
-              <h4 class="text-lg font-semibold text-gray-800">Taste</h4>
-              <ul class="list-disc list-inside">
-                <li>Sweetness: {{ recipe.taste.sweetness }}</li>
-                <li>Saltiness: {{ recipe.taste.saltiness }}</li>
-                <li>Sourness: {{ recipe.taste.sourness }}</li>
-                <li>Bitterness: {{ recipe.taste.bitterness }}</li>
-                <li>Savoriness: {{ recipe.taste.savoriness }}</li>
-                <li>Fattiness: {{ recipe.taste.fattiness }}</li>
-                <li>Spiciness: {{ recipe.taste.spiciness }}</li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>
