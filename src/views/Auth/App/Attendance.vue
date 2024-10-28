@@ -113,7 +113,7 @@ onMounted(() => {
       <p class="text-center text-lg text-gray-500">No attendance records found.</p>
     </div>
 
-    <div v-if="showCamera" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+    <div v-if="showCamera.value" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
       <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         <h2 class="text-2xl font-bold mb-4">Scan QR Code</h2>
         <QrcodeStream @decode="handleScan" />
