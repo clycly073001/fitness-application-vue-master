@@ -26,19 +26,19 @@ const routes = [
     path: '/',
     name: 'landing-page',
     component: LandingPage,
-    meta: { requiresUnauth: true }
+    meta: { requiresUnauth: true, title: 'Fiber Muscle - Home' }
   },
   {
     path: '/login',
     name: 'login',
     component: Login,
-    meta: { requiresUnauth: true }
+    meta: { requiresUnauth: true, title: 'Fiber Muscle - Login' }
   },
   {
     path: '/register',
     name: 'register',
     component: Register,
-    meta: { requiresUnauth: true }
+    meta: { requiresUnauth: true, title: 'Fiber Muscle - Register' }
   },
   {
     path: '/application',
@@ -47,12 +47,14 @@ const routes = [
       {
         path: 'dashboard',
         name: 'Dashboard',
-        component: Dashboard
+        component: Dashboard,
+        meta: { title: 'Fiber Muscle - Dashboard' }
       },
       {
         path: 'dashboard/time_in',
         name: 'TimeIn',
         component: Dashboard,
+        meta: { title: 'Fiber Muscle - Time In' },
         beforeEnter: (to, from, next) => {
           const recordAttendance = async () => {
             const storedUser = localStorage.getItem('user');
@@ -86,6 +88,7 @@ const routes = [
         path: 'dashboard/time_out',
         name: 'TimeOut',
         component: Dashboard,
+        meta: { title: 'Fiber Muscle - Time Out' },
         beforeEnter: (to, from, next) => {
           const recordAttendance = async () => {
             const storedUser = localStorage.getItem('user');
@@ -136,72 +139,86 @@ const routes = [
       {
         path: 'exercises',
         name: 'Exercises',
-        component: Exercises
+        component: Exercises,
+        meta: { title: 'Fiber Muscle - Exercises' }
       },
       {
         path: 'nutrition',
         name: 'Nutrition',
-        component: Nutrition
+        component: Nutrition,
+        meta: { title: 'Fiber Muscle - Nutrition' }
       },
       {
         path: 'shop',
         name: 'Shop',
-        component: Shop
+        component: Shop,
+        meta: { title: 'Fiber Muscle - Shop' }
       },
       {
         path: 'users',
         name: 'Users',
-        component: Users
+        component: Users,
+        meta: { title: 'Fiber Muscle - Users' }
       },
       {
         path: 'exercises/create',
         name: 'Exercises_Create',
-        component: Exercises_Create
+        component: Exercises_Create,
+        meta: { title: 'Fiber Muscle - Create Exercise' }
       },
       {
         path: 'exercises/:id',
         name: 'Exercises_Show',
-        component: Exercises_Show
+        component: Exercises_Show,
+        meta: { title: 'Fiber Muscle - Exercise Details' }
       },
       {
         path: 'exercises/:id/edit',
         name: 'Exercises_Edit',
-        component: Exercises_Edit
+        component: Exercises_Edit,
+        meta: { title: 'Fiber Muscle - Edit Exercise' }
       },
       {
         path: 'users/:id',
         name: 'Users_Show',
-        component: Users_Show
+        component: Users_Show,
+        meta: { title: 'Fiber Muscle - User Details' }
       },
       {
         path: 'users/create',
         name: 'Users_Create',
-        component: Users_Create
+        component: Users_Create,
+        meta: { title: 'Fiber Muscle - Create User' }
       },
       {
         path: 'users/:id/edit',
         name: 'Users_Edit',
-        component: Users_Edit
+        component: Users_Edit,
+        meta: { title: 'Fiber Muscle - Edit User' }
       },
       {
         path: 'shop/create',
         name: 'Create_Item',
-        component: Create_Item
+        component: Create_Item,
+        meta: { title: 'Fiber Muscle - Create Item' }
       },
       {
         path: 'shop/:id',
         name: 'Shop_Item_Show',
-        component: Shop_Item_Show
+        component: Shop_Item_Show,
+        meta: { title: 'Fiber Muscle - Item Details' }
       },
       {
         path: 'shop/:id/edit',
         name: 'Edit_Item',
-        component: Edit_Item
+        component: Edit_Item,
+        meta: { title: 'Fiber Muscle - Edit Item' }
       },
       {
         path: 'attendance',
         name: 'Attendance',
-        component: Attendance
+        component: Attendance,
+        meta: { title: 'Fiber Muscle - Attendance' }
       },
       {
         path: '/:pathMatch(.*)*',
@@ -215,6 +232,11 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
+});
+
+router.beforeEach((to, from, next) => {
+  document.title = to.meta.title || 'Fiber Muscle';
+  next();
 });
 
 export default router;
