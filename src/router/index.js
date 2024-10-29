@@ -20,6 +20,7 @@ import Edit_Item from '@/views/Auth/App/Edit_Item.vue';
 import Attendance from '@/views/Auth/App/Attendance.vue';
 import swal from 'sweetalert';
 import { supabase } from '@/lib/supabaseClient';
+import AttendanceRecord from '@/views/Auth/App/AttendanceRecord.vue';
 
 const routes = [
   {
@@ -215,10 +216,16 @@ const routes = [
         meta: { title: 'Fiber Muscle - Edit Item' }
       },
       {
-        path: 'attendance',
+        path: 'your-attendance-record',
         name: 'Attendance',
         component: Attendance,
         meta: { title: 'Fiber Muscle - Attendance' }
+      },
+      {
+        path: 'attendance-sheet',
+        name: 'AttendanceSheet',
+        component: AttendanceRecord,
+        meta: { title: 'Fiber Muscle - Attendance Records' }
       },
       {
         path: '/:pathMatch(.*)*',

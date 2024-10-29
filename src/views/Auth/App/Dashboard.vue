@@ -119,12 +119,28 @@ const generateQRCode = async (type) => {
   }
 };
 
-onMounted(async () => {
+const fetchUserData = async () => {
   const storedUser = localStorage.getItem('user');
   if (storedUser) {
-    user.value = JSON.parse(storedUser);
-  }
+    const userId = JSON.parse(storedUser).id;
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
+    if (error) {
+      console.error('Error fetching user data:', error);
+      return;
+    }
+
+    user.value = userData;
+    localStorage.setItem('user', JSON.stringify(userData));
+  }
+};
+
+onMounted(async () => {
+  await fetchUserData();
   await calculateMembershipStatistics();
   await calculateExerciseStatistics();
   await generateQRCode('time_in');
@@ -169,7 +185,7 @@ onMounted(async () => {
         </ul>
       </div>
 
-      <div v-if="user && user.role == 'admin'" class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+      <div v-if="user && user.role === 'admin'" class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
         <h2 class="text-xl font-bold mb-2 text-blue-600">Attendance</h2>
         <div class="flex flex-col items-center">
           <div>
