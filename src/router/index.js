@@ -202,7 +202,12 @@ const routes = [
         path: 'attendance',
         name: 'Attendance',
         component: Attendance
-      }
+      },
+      {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: Dashboard
+      },
     ]
   }
 ];
