@@ -223,7 +223,8 @@ const routes = [
       {
         path: '/:pathMatch(.*)*',
         name: 'NotFound',
-        component: Dashboard
+        component: Dashboard,
+        meta: { title: 'Fiber Muscle - Dashboard' }
       },
     ]
   }
