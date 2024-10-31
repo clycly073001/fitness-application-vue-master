@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
+import * as XLSX from 'xlsx';
 
 const attendance = ref([]);
 const currentPage = ref(1);
@@ -45,6 +46,18 @@ const prevPage = () => {
   }
 };
 
+const exportToExcel = () => {
+  const worksheet = XLSX.utils.json_to_sheet(attendance.value.map(record => ({
+    ID: record.id,
+    'User Name': record.users?.name || 'N/A',
+    'Time In': new Date(record.time_in).toLocaleString(),
+    'Time Out': record.time_out ? new Date(record.time_out).toLocaleString() : 'N/A'
+  })));
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Records');
+  XLSX.writeFile(workbook, 'AttendanceRecords.xlsx');
+};
+
 watch(searchDate, (newDate) => {
   currentPage.value = 1;
   fetchAttendance(1, newDate);
@@ -58,13 +71,16 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-gray-100 p-8">
     <h1 class="text-3xl font-bold mb-4 text-gray-800">Attendance Records</h1>
-    <div class="mb-4">
+    <div class="mb-4 flex space-x-4">
       <input
         v-model="searchDate"
         type="date"
         placeholder="Search by Date"
         class="w-full p-2 border rounded-lg"
       />
+      <button @click="exportToExcel" class="bg-green-500 text-white px-4 py-2 rounded-lg">
+        Save as Spreadsheet
+      </button>
     </div>
     <div class="overflow-x-auto">
       <table class="min-w-full bg-white text-center">
