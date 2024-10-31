@@ -52,19 +52,13 @@ const routes = [
         meta: { title: 'Fiber Muscle - Dashboard' }
       },
       {
-        path: 'dashboard/time_in',
+        path: 'dashboard/time_in/:id',
         name: 'TimeIn',
         component: Dashboard,
         meta: { title: 'Fiber Muscle - Time In' },
         beforeEnter: (to, from, next) => {
           const recordAttendance = async () => {
-            const storedUser = localStorage.getItem('user');
-            if (!storedUser) {
-              swal("Error", "User not found. Please log in again.", "error");
-              return;
-            }
-
-            const userId = JSON.parse(storedUser).id;
+            const userId = to.params.id;
             const now = new Date().toISOString();
 
             const { data, error } = await supabase
@@ -86,19 +80,13 @@ const routes = [
         }
       },
       {
-        path: 'dashboard/time_out',
+        path: 'dashboard/time_out/:id',
         name: 'TimeOut',
         component: Dashboard,
         meta: { title: 'Fiber Muscle - Time Out' },
         beforeEnter: (to, from, next) => {
           const recordAttendance = async () => {
-            const storedUser = localStorage.getItem('user');
-            if (!storedUser) {
-              swal("Error", "User not found. Please log in again.", "error");
-              return;
-            }
-
-            const userId = JSON.parse(storedUser).id;
+            const userId = to.params.id;
             const now = new Date().toISOString();
 
             const { data: attendanceRecords, error } = await supabase

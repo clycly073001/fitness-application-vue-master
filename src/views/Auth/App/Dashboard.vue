@@ -6,6 +6,7 @@ import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale } from 'chart.js';
 import QRCode from 'qrcode';
 import swal from 'sweetalert';
+import { QrcodeStream } from 'vue-qrcode-reader';
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale);
 
@@ -22,6 +23,7 @@ const weightDistribution = ref([]);
 const heightDistribution = ref([]);
 const timeInQRCode = ref('');
 const timeOutQRCode = ref('');
+const showCamera = ref(false);
 
 const calculateMembershipStatistics = async () => {
   const now = new Date();
@@ -109,13 +111,16 @@ const calculateExerciseStatistics = async () => {
 };
 
 const generateQRCode = async (type) => {
-  const baseUrl = 'https://fitness-application-vue-master.vercel.app/application/dashboard';
-  const url = `${baseUrl}/${type}`;
-  const qrCodeDataUrl = await QRCode.toDataURL(url);
-  if (type === 'time_in') {
-    timeInQRCode.value = qrCodeDataUrl;
-  } else if (type === 'time_out') {
-    timeOutQRCode.value = qrCodeDataUrl;
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    const userId = JSON.parse(storedUser).id;
+    const baseUrl = `https://fitness-application-vue-master.vercel.app/application/dashboard/time_in/${userId}`;
+    const qrCodeDataUrl = await QRCode.toDataURL(baseUrl);
+    if (type === 'time_in') {
+      timeInQRCode.value = qrCodeDataUrl;
+    } else if (type === 'time_out') {
+      timeOutQRCode.value = qrCodeDataUrl;
+    }
   }
 };
 
@@ -139,6 +144,42 @@ const fetchUserData = async () => {
   }
 };
 
+const navigateTo = (route) => {
+  router.push(route);
+};
+
+const handleScan = async (result) => {
+  if (!result) return;
+
+  const url = new URL(result);
+  const userId = url.pathname.split('/').pop();
+  await recordAttendance(userId);
+
+  showCamera.value = false;
+};
+
+const toggleCamera = () => {
+  showCamera.value = !showCamera.value;
+};
+
+const recordAttendance = async (userId) => {
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from('attendance')
+    .insert([
+      { user_id: userId, time_in: now, date: new Date().toISOString().split('T')[0] },
+    ])
+    .select();
+
+  if (error) {
+    console.error('Error recording time in:', error);
+    swal("Error", "An error occurred while recording time in. Please try again.", "error");
+  } else {
+    swal("Success", "Time in recorded successfully!", "success");
+  }
+};
+
 onMounted(async () => {
   await fetchUserData();
   await calculateMembershipStatistics();
@@ -154,9 +195,17 @@ onMounted(async () => {
       <h1 class="text-4xl font-bold mb-4 text-gray-800">Dashboard</h1>
       <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 mb-10">
         <h2 class="text-xl font-bold mb-2 text-blue-600">Quick Actions</h2>
-        <button @click="navigateTo('CreateExercise')" class="bg-blue-500 text-white px-4 py-2 rounded-lg mr-2 transition-colors duration-300 hover:bg-blue-600">Add New Exercise</button>
-        <button @click="navigateTo('CreateUser')" class="bg-green-500 text-white px-4 py-2 rounded-lg mr-2 transition-colors duration-300 hover:bg-green-600">Add New Member</button>
-        <button @click="navigateTo('Exercises')" class="bg-purple-500 text-white px-4 py-2 rounded-lg mb-2 transition-colors duration-300 hover:bg-purple-600">Assign Exercises</button>
+        <button @click="navigateTo('/application/exercises/create')" class="bg-blue-500 text-white px-4 py-2 rounded-lg mr-2 transition-colors duration-300 hover:bg-blue-600">Add New Exercise</button>
+        <button @click="navigateTo('/application/users/create')" class="bg-green-500 text-white px-4 py-2 rounded-lg mr-2 transition-colors duration-300 hover:bg-green-600">Add New Member</button>
+        <button @click="toggleCamera" class="bg-purple-500 text-white px-4 py-2 rounded-lg mb-2 transition-colors duration-300 hover:bg-purple-600">Scan QR Code</button>
+      </div>
+    </div>
+    
+    <div v-if="showCamera" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4">Scan QR Code</h2>
+        <QrcodeStream @decode="handleScan" />
+        <button @click="toggleCamera" class="bg-red-500 text-white px-4 py-2 rounded-lg mt-4">Close</button>
       </div>
     </div>
     
