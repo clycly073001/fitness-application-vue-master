@@ -180,7 +180,7 @@ const routes = [
         meta: { title: 'Fiber Muscle - Create User' }
       },
       {
-        path: 'users/:id/edit',
+        path: 'users//edit/:id',
         name: 'Users_Edit',
         component: Users_Edit,
         meta: { title: 'Fiber Muscle - Edit User' }
@@ -198,7 +198,7 @@ const routes = [
         meta: { title: 'Fiber Muscle - Item Details' }
       },
       {
-        path: 'shop/:id/edit',
+        path: 'shop//edit/:id',
         name: 'Edit_Item',
         component: Edit_Item,
         meta: { title: 'Fiber Muscle - Edit Item' }

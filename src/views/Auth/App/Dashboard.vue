@@ -110,11 +110,17 @@ const calculateExerciseStatistics = async () => {
   }
 };
 
+
 const generateQRCode = async (type) => {
   const storedUser = localStorage.getItem('user');
   if (storedUser) {
     const userId = JSON.parse(storedUser).id;
-    const baseUrl = `https://fitness-application-vue-master.vercel.app/application/dashboard/time_in/${userId}`;
+    let baseUrl;
+    if (type === 'time_in') {
+      baseUrl = `https://fitness-application-vue-master.vercel.app/application/dashboard/time_in/${userId}`;
+    } else if (type === 'time_out') {
+      baseUrl = `https://fitness-application-vue-master.vercel.app/application/dashboard/time_out/${userId}`;
+    }
     const qrCodeDataUrl = await QRCode.toDataURL(baseUrl);
     if (type === 'time_in') {
       timeInQRCode.value = qrCodeDataUrl;
@@ -197,7 +203,7 @@ onMounted(async () => {
         <h2 class="text-xl font-bold mb-2 text-blue-600">Quick Actions</h2>
         <button @click="navigateTo('/application/exercises/create')" class="bg-blue-500 text-white px-4 py-2 rounded-lg mr-2 transition-colors duration-300 hover:bg-blue-600">Add New Exercise</button>
         <button @click="navigateTo('/application/users/create')" class="bg-green-500 text-white px-4 py-2 rounded-lg mr-2 transition-colors duration-300 hover:bg-green-600">Add New Member</button>
-        <button @click="toggleCamera" class="bg-purple-500 text-white px-4 py-2 rounded-lg mb-2 transition-colors duration-300 hover:bg-purple-600">Scan QR Code</button>
+        <button @click="navigateTo('/application/shop/create')" class="bg-purple-500 text-white px-4 py-2 rounded-lg mb-2 transition-colors duration-300 hover:bg-purple-600">Add Item</button>
       </div>
     </div>
     
@@ -234,7 +240,7 @@ onMounted(async () => {
         </ul>
       </div>
 
-      <div v-if="user && user.role === 'admin'" class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+      <div v-if="user && user.role === 'user'" class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
         <h2 class="text-xl font-bold mb-2 text-blue-600">Attendance</h2>
         <div class="flex flex-col items-center">
           <div>

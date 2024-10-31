@@ -37,6 +37,13 @@ const login = async () => {
   }
 
   const user = users[0];
+
+  // Check if the user's role is 'user'
+  if (user.role === 'user') {
+    swal("Error", "You are not authorized to log in.", "error");
+    return;
+  }
+
   const passwordMatch = await bcrypt.compare(data.value.password, user.password);
 
   if (passwordMatch) {

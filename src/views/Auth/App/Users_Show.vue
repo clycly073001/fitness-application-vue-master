@@ -13,7 +13,7 @@ const exercises = ref([]);
 const selectedExercises = ref([]);
 const assignedExercises = ref([]);
 const currentPage = ref(1);
-const itemsPerPage = 5;
+const itemsPerPage = ref(5);
 
 const fetchUser = async () => {
   const { id } = route.params;
@@ -64,8 +64,8 @@ const fetchExercises = async () => {
 
 const fetchAssignedExercises = async (page = 1) => {
   const { id: userId } = route.params;
-  const from = (page - 1) * itemsPerPage;
-  const to = from + itemsPerPage - 1;
+  const from = (page - 1) * itemsPerPage.value;
+  const to = from + itemsPerPage.value - 1;
 
   let { data, error } = await supabase
     .from('exercises_users')
@@ -119,6 +119,41 @@ const assignExercises = async () => {
     selectedExercises.value = [];
     fetchAssignedExercises(currentPage.value); // Refresh the assigned exercises list
   }
+};
+
+const deleteAssignedExercise = async (exerciseId) => {
+  const { id: userId } = route.params;
+
+  const { error } = await supabase
+    .from('exercises_users')
+    .delete()
+    .eq('user_id', userId)
+    .eq('exercise_id', exerciseId);
+
+  if (error) {
+    console.error('Error deleting assigned exercise:', error);
+    swal("Error", "An error occurred while deleting the assigned exercise. Please try again.", "error");
+  } else {
+    assignedExercises.value = assignedExercises.value.filter(exercise => exercise.exercise_id !== exerciseId);
+    swal("Success", "Assigned exercise deleted successfully!", "success");
+  }
+};
+
+const confirmDelete = (exerciseId) => {
+  swal({
+    title: "Are you sure?",
+    text: "Once deleted, you will not be able to recover this assigned exercise!",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then((willDelete) => {
+    if (willDelete) {
+      deleteAssignedExercise(exerciseId);
+    } else {
+      swal("Your assigned exercise is safe!");
+    }
+  });
 };
 
 const changePage = (page) => {
@@ -188,17 +223,21 @@ onMounted(() => {
                 <th class="py-2 px-4 border-b">Exercise Name</th>
                 <th class="py-2 px-4 border-b">Type</th>
                 <th class="py-2 px-4 border-b">Assigned At</th>
+                <th class="py-2 px-4 border-b">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="assigned in assignedExercises" :key="assigned.exercise_id">
                 <td class="py-2 px-4 border-b">
-                  <router-link :to="{ name: 'ShowExercise', params: { id: assigned.exercise_id } }" class="text-blue-600 hover:underline">
+                  <router-link :to="{ name: 'Exercises_Show', params: { id: assigned.exercise_id } }" class="text-blue-600 hover:underline">
                     {{ assigned.name }}
                   </router-link>
                 </td>
                 <td class="py-2 px-4 border-b">{{ assigned.type }}</td>
                 <td class="py-2 px-4 border-b">{{ new Date(assigned.created_at).toLocaleString() }}</td>
+                <td class="py-2 px-4 border-b">
+                  <button @click="confirmDelete(assigned.exercise_id)" class="bg-red-500 text-white px-4 py-2 rounded-lg">Delete</button>
+                </td>
               </tr>
             </tbody>
           </table>
