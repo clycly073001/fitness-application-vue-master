@@ -2,47 +2,50 @@
 import { ref } from 'vue';
 import axios from 'axios';
 
-const apiKey = 'be3c7db77b8e4535986e7e694e2d88a2';
+const appId = 'bb8816fa';
+const appKey = 'bf8cafae26b20ea99ff088bde54bd215';
 const query = ref('');
-const recipes = ref([]);
-const loading = ref(false); // Add loading state
+const foods = ref([]);
+const loading = ref(false);
 
-const searchRecipes = async () => {
-  loading.value = true; // Set loading to true when search starts
+const searchFoods = async () => {
+  loading.value = true;
   try {
-    const response = await axios.get('https://api.spoonacular.com/recipes/complexSearch', {
+    const response = await axios.get('https://api.edamam.com/api/food-database/v2/parser', {
       params: {
-        apiKey,
-        query: query.value,
-        addRecipeInformation: true,
-        addRecipeNutrition: true,
+        app_id: appId,
+        app_key: appKey,
+        ingr: query.value,
       },
     });
 
-    const detailedRecipes = await Promise.all(
-      response.data.results.map(async (recipe) => {
-        const [nutritionResponse, tasteResponse] = await Promise.all([
-          axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
-            params: { apiKey },
-          }),
-          axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/tasteWidget.json`, {
-            params: { apiKey },
-          }),
-        ]);
+    const detailedFoods = await Promise.all(
+      response.data.hints.map(async (hint) => {
+        const food = hint.food;
+        const nutrientsResponse = await axios.post('https://api.edamam.com/api/food-database/v2/nutrients', {
+          ingredients: [{ quantity: 1, measureURI: "http://www.edamam.com/ontologies/edamam.owl#Measure_unit", foodId: food.foodId }]
+        }, {
+          params: {
+            app_id: appId,
+            app_key: appKey
+          },
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
 
         return {
-          ...recipe,
-          nutrition: nutritionResponse.data,
-          taste: tasteResponse.data,
+          ...food,
+          nutrients: nutrientsResponse.data.totalNutrients,
         };
       })
     );
 
-    recipes.value = detailedRecipes;
+    foods.value = detailedFoods;
   } catch (error) {
-    console.error('Error fetching recipes:', error);
+    console.error('Error fetching foods:', error);
   } finally {
-    loading.value = false; // Set loading to false when search completes
+    loading.value = false;
   }
 };
 </script>
@@ -53,7 +56,7 @@ const searchRecipes = async () => {
     <p>Search for foods according to your liking.</p>
 
     <div class="mt-6">
-      <form @submit.prevent="searchRecipes" class="space-y-4">
+      <form @submit.prevent="searchFoods" class="space-y-4">
         <div>
           <label class="block text-gray-700 text-sm font-bold mb-2" for="query">Query</label>
           <input v-model="query" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="query" type="text" placeholder="e.g., chicken">
@@ -67,27 +70,31 @@ const searchRecipes = async () => {
     </div>
 
     <div class="mt-8">
-      <h2 class="text-2xl font-bold mb-4">Recipes</h2>
+      <h2 class="text-2xl font-bold mb-4">Foods</h2>
       <div v-if="loading" class="flex justify-center items-center">
         <div class="loader"></div>
       </div>
-      <div v-else-if="recipes.length">
+      <div v-else-if="foods.length">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="recipe in recipes" :key="recipe.id" class="bg-white p-4 rounded-lg shadow-md">
-            <h3 class="text-xl font-semibold text-gray-800">{{ recipe.title }}</h3>
-            <img :src="recipe.image" :alt="recipe.title" class="w-full h-40 object-cover rounded-lg mt-2">
-            <p class="mt-2 text-gray-600" v-html="recipe.summary"></p>
+          <div v-for="food in foods" :key="food.foodId" class="bg-white p-4 rounded-lg shadow-md">
+            <h3 class="text-xl font-semibold text-gray-800">{{ food.label }}</h3>
+            <img :src="food.image" :alt="food.label" class="w-full h-40 object-cover rounded-lg mt-2">
+            <p class="mt-2 text-gray-600"><strong>Known As:</strong> {{ food.knownAs }}</p>
+            <p class="mt-2 text-gray-600"><strong>Brand:</strong> {{ food.brand }}</p>
+            <p class="mt-2 text-gray-600"><strong>Category:</strong> {{ food.category }}</p>
+            <p class="mt-2 text-gray-600"><strong>Category Label:</strong> {{ food.categoryLabel }}</p>
+            <p class="mt-2 text-gray-600"><strong>Food Contents Label:</strong> {{ food.foodContentsLabel }}</p>
             <div class="mt-4">
-              <h4 class="text-lg font-semibold text-gray-800">Nutrition</h4>
+              <h4 class="text-lg font-semibold text-gray-800">Nutrients</h4>
               <ul class="list-disc list-inside">
-                <li v-for="nutrient in recipe.nutrition.nutrients" :key="nutrient.name">{{ nutrient.name }}: {{ nutrient.amount }}{{ nutrient.unit }} ({{ nutrient.percentOfDailyNeeds }}% DV)</li>
+                <li v-for="(value, key) in food.nutrients" :key="key">{{ key }}: {{ value.quantity }}{{ value.unit }}</li>
               </ul>
             </div>
           </div>
         </div>
       </div>
       <div v-else>
-        <p class="text-center text-lg text-gray-500">No recipes found.</p>
+        <p class="text-center text-lg text-gray-500">No foods found.</p>
       </div>
     </div>
   </div>
