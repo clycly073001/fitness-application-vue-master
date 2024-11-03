@@ -65,7 +65,6 @@ const renewMembership = async (userId) => {
     .update({
       start_of_membership: now.toISOString(),
       end_of_membership: nextMonth.toISOString(),
-      membership_status: true,
     })
     .eq('id', userId);
 
@@ -173,77 +172,78 @@ watch(searchQuery, (newQuery) => {
     </div>
 
     <!-- User List -->
-    <div v-else>
-      <div v-if="users.length">
-        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <li 
-            v-for="user in users" 
-            :key="user.id" 
-            class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-            @click="viewUserProfile(user.id)"
+<!-- User List -->
+<div v-else>
+  <div v-if="users.length">
+    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <li 
+        v-for="user in users" 
+        :key="user.id" 
+        class="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+        @click="viewUserProfile(user.id)"
+      >
+        <div class="mb-4">
+          <p class="text-xl font-semibold text-gray-800">{{ user.name }}</p>
+          <p class="text-gray-500">{{ user.email }}</p>
+        </div>
+        <div class="flex justify-between items-center">
+          <span 
+            :class="new Date(user.end_of_membership) > new Date() ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'"
+            class="px-3 py-1 rounded-full text-sm font-semibold"
           >
-            <div class="mb-4">
-              <p class="text-xl font-semibold text-gray-800">{{ user.name }}</p>
-              <p class="text-gray-500">{{ user.email }}</p>
-            </div>
-            <div class="flex justify-between items-center">
-              <span 
-                :class="user.membership_status ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'"
-                class="px-3 py-1 rounded-full text-sm font-semibold"
-              >
-                {{ user.membership_status ? 'Active' : 'Expired' }}
-              </span>
+            {{ new Date(user.end_of_membership) > new Date() ? 'Active' : 'Expired' }}
+          </span>
 
-              <!-- Renew Button -->
-              <button
-                v-if="!user.membership_status"
-                @click.stop="renewMembership(user.id)" 
-                class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow hover:bg-blue-400 transition-all duration-200"
-              >
-                Renew Membership
-              </button>
-            </div>
-            <div class="flex justify-between items-center mt-4">
-              <button
-                @click.stop="editUser(user.id)" 
-              >
-                <img src="/public/item_images/edit.png" alt="">
-              </button>
-              <button
-                @click.stop="confirmDeleteUser(user.id)" 
-              >
-              <img src="/public/item_images/delete.png" alt="">
-              </button>
-            </div>
-          </li>
-        </ul>
-
-        <!-- Pagination Controls -->
-        <div class="flex justify-between items-center mt-8">
-          <button 
-            @click="prevPage" 
-            :disabled="currentPage === 1" 
-            class="bg-gray-300 text-gray-700 px-5 py-3 rounded-lg shadow-sm font-medium disabled:opacity-50 hover:bg-gray-400 transition-all duration-200"
+          <!-- Renew Button -->
+          <button
+            v-if="new Date(user.end_of_membership) <= new Date()"
+            @click.stop="renewMembership(user.id)" 
+            class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow hover:bg-blue-400 transition-all duration-200"
           >
-            Previous
-          </button>
-          <span class="text-gray-600 font-semibold">Page {{ currentPage }} of {{ totalPages }}</span>
-          <button 
-            @click="nextPage" 
-            :disabled="currentPage === totalPages" 
-            class="bg-gray-300 text-gray-700 px-5 py-3 rounded-lg shadow-sm font-medium disabled:opacity-50 hover:bg-gray-400 transition-all duration-200"
-          >
-            Next
+            Renew Membership
           </button>
         </div>
-      </div>
+        <div class="flex justify-between items-center mt-4">
+          <button
+            @click.stop="editUser(user.id)" 
+          >
+            <img src="/public/item_images/edit.png" alt="Edit">
+          </button>
+          <button
+            @click.stop="confirmDeleteUser(user.id)" 
+          >
+            <img src="/public/item_images/delete.png" alt="Delete">
+          </button>
+        </div>
+      </li>
+    </ul>
 
-      <!-- No Users Found -->
-      <div v-else>
-        <p class="text-center text-lg text-gray-500">No users found.</p>
-      </div>
+    <!-- Pagination Controls -->
+    <div class="flex justify-between items-center mt-8">
+      <button 
+        @click="prevPage" 
+        :disabled="currentPage === 1" 
+        class="bg-gray-300 text-gray-700 px-5 py-3 rounded-lg shadow-sm font-medium disabled:opacity-50 hover:bg-gray-400 transition-all duration-200"
+      >
+        Previous
+      </button>
+      <span class="text-gray-600 font-semibold">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button 
+        @click="nextPage" 
+        :disabled="currentPage === totalPages" 
+        class="bg-gray-300 text-gray-700 px-5 py-3 rounded-lg shadow-sm font-medium disabled:opacity-50 hover:bg-gray-400 transition-all duration-200"
+      >
+        Next
+      </button>
     </div>
   </div>
+
+  <!-- No Users Found -->
+  <div v-else>
+    <p class="text-center text-lg text-gray-500">No users found.</p>
+  </div>
+</div>
+    </div>
 </template>
 
 <style scoped>
