@@ -92,6 +92,49 @@ const exportToExcel = () => {
   XLSX.writeFile(workbook, 'AttendanceRecords.xlsx');
 };
 
+const updateUserLoginData = async () => {
+  try {
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id');
+
+    if (usersError) {
+      throw usersError;
+    }
+
+    for (const user of users) {
+      const { data: attendance, error: attendanceError } = await supabase
+        .from('attendance')
+        .select('time_in')
+        .eq('user_id', user.id)
+        .order('time_in', { ascending: false });
+
+      if (attendanceError) {
+        throw attendanceError;
+      }
+
+      if (attendance.length > 0) {
+        const lastLoginDate = attendance[0].time_in;
+        const loginStreak = attendance.length;
+
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ last_login_date: lastLoginDate, login_streak: loginStreak })
+          .eq('id', user.id);
+
+        if (updateError) {
+          throw updateError;
+        }
+      }
+    }
+
+    swal("Success", "User login data updated successfully!", "success");
+  } catch (error) {
+    console.error('Error updating user login data:', error);
+    swal("Error", "An error occurred while updating user login data. Please try again.", "error");
+  }
+};
+
 watch(searchDate, (newDate) => {
   currentPage.value = 1;
   fetchAttendance(1, newDate);
@@ -114,6 +157,9 @@ onMounted(() => {
       />
       <button @click="exportToExcel" class="bg-green-500 text-white px-4 py-2 rounded-lg">
         Save as Spreadsheet
+      </button>
+      <button @click="updateUserLoginData" class="bg-blue-500 text-white px-4 py-2 rounded-lg">
+        Update User Login Data
       </button>
     </div>
     <div class="overflow-x-auto">

@@ -9,9 +9,12 @@ const router = useRouter();
 const user = ref(null);
 const loading = ref(true);
 const showModal = ref(false);
+const showSuggestModal = ref(false);
 const exercises = ref([]);
 const selectedExercises = ref([]);
 const assignedExercises = ref([]);
+const foodSuggestions = ref([]);
+const foodSuggestion = ref('');
 const currentPage = ref(1);
 const itemsPerPage = ref(5);
 
@@ -94,6 +97,20 @@ const fetchAssignedExercises = async (page = 1) => {
   }
 };
 
+const fetchFoodSuggestions = async () => {
+  const { id: userId } = route.params;
+  let { data, error } = await supabase
+    .from('foods_for_users')
+    .select('food_suggestion, created_at')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching food suggestions:', error);
+  } else {
+    foodSuggestions.value = data;
+  }
+};
+
 const assignExercises = async () => {
   const { id: userId } = route.params;
   const now = new Date().toISOString();
@@ -156,6 +173,28 @@ const confirmDelete = (exerciseId) => {
   });
 };
 
+const suggestFood = async () => {
+  const { id: userId } = route.params;
+  const now = new Date().toISOString();
+
+  const { error } = await supabase
+    .from('foods_for_users')
+    .insert([
+      { user_id: userId, food_suggestion: foodSuggestion.value, created_at: now },
+    ])
+    .select();
+
+  if (error) {
+    console.error('Error suggesting food:', error);
+    swal("Error", "An error occurred while suggesting food. Please try again.", "error");
+  } else {
+    swal("Success", "Food suggestion added successfully!", "success");
+    showSuggestModal.value = false;
+    foodSuggestion.value = '';
+    fetchFoodSuggestions(); // Refresh the food suggestions list
+  }
+};
+
 const changePage = (page) => {
   currentPage.value = page;
   fetchAssignedExercises(page);
@@ -165,6 +204,7 @@ onMounted(() => {
   fetchUser();
   fetchExercises();
   fetchAssignedExercises();
+  fetchFoodSuggestions();
 });
 </script>
 
@@ -213,6 +253,9 @@ onMounted(() => {
         <button @click="showModal = true" class="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-500 transition duration-200">
           Assign Exercise(s)
         </button>
+        <button @click="showSuggestModal = true" class="bg-green-600 text-white px-5 py-2 rounded-lg shadow hover:bg-green-500 transition duration-200 ml-4">
+          Suggest Foods
+        </button>
       </div>
       <div class="mt-6">
         <h2 class="text-2xl font-bold mb-4">Assigned Exercises</h2>
@@ -248,12 +291,32 @@ onMounted(() => {
           <button @click="changePage(currentPage + 1)" :disabled="assignedExercises.length < itemsPerPage" class="px-4 py-2 mx-1 bg-gray-300 rounded-lg">Next</button>
         </div>
       </div>
+      <div class="mt-6">
+        <h2 class="text-2xl font-bold mb-4">Food Suggestions</h2>
+        <div class="overflow-x-auto">
+          <table v-if="foodSuggestions.length > 0" class="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th class="py-2 px-4 border-b">Food Suggestion</th>
+                <th class="py-2 px-4 border-b">Suggested At</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="suggestion in foodSuggestions" :key="suggestion.id">
+                <td class="py-2 px-4 border-b">{{ suggestion.food_suggestion }}</td>
+                <td class="py-2 px-4 border-b">{{ new Date(suggestion.created_at).toLocaleString() }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else class="text-center text-gray-600">No food suggestions</p>
+        </div>
+      </div>
     </div>
     <div v-else class="flex justify-center items-center h-full min-h-screen">
       <p class="text-center">No user found.</p>
     </div>
 
-    <!-- Modal -->
+    <!-- Assign Exercises Modal -->
     <div v-if="showModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
       <div class="bg-white p-6 rounded-lg shadow-lg w-96">
         <h2 class="text-2xl font-bold mb-4">Assign Exercise(s)</h2>
@@ -273,6 +336,25 @@ onMounted(() => {
           </button>
           <button @click="assignExercises" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200">
             Assign
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suggest Foods Modal -->
+    <div v-if="showSuggestModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+        <h2 class="text-2xl font-bold mb-4">Suggest Food</h2>
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="foodSuggestion">Food Suggestion</label>
+          <textarea v-model="foodSuggestion" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="foodSuggestion" rows="5" placeholder="Enter your food suggestion here..."></textarea>
+        </div>
+        <div class="flex justify-end">
+          <button @click="showSuggestModal = false" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-gray-600 transition duration-200">
+            Cancel
+          </button>
+          <button @click="suggestFood" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500 transition duration-200">
+            Suggest
           </button>
         </div>
       </div>
