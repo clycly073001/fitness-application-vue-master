@@ -18,6 +18,65 @@ const foodSuggestion = ref('');
 const currentPage = ref(1);
 const itemsPerPage = ref(5);
 
+const showEditModal = ref(false);
+const editFoodSuggestion = ref('');
+const editFoodSuggestionId = ref(null);
+
+const deleteFoodSuggestion = async (suggestionId) => {
+  const { error } = await supabase
+    .from('foods_for_users')
+    .delete()
+    .eq('id', suggestionId);
+
+  if (error) {
+    console.error('Error deleting food suggestion:', error);
+    swal("Error", "An error occurred while deleting the food suggestion. Please try again.", "error");
+  } else {
+    foodSuggestions.value = foodSuggestions.value.filter(suggestion => suggestion.id !== suggestionId);
+    swal("Success", "Food suggestion deleted successfully!", "success");
+  }
+};
+
+const confirmDeleteFoodSuggestion = (suggestionId) => {
+  swal({
+    title: "Are you sure?",
+    text: "Once deleted, you will not be able to recover this food suggestion!",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then((willDelete) => {
+    if (willDelete) {
+      deleteFoodSuggestion(suggestionId);
+    } else {
+      swal("Your food suggestion is safe!");
+    }
+  });
+};
+
+const editFoodSuggestionModal = (suggestion) => {
+  editFoodSuggestionId.value = suggestion.id;
+  editFoodSuggestion.value = suggestion.food_suggestion;
+  showEditModal.value = true;
+};
+
+const updateFoodSuggestion = async () => {
+  const { error } = await supabase
+    .from('foods_for_users')
+    .update({ food_suggestion: editFoodSuggestion.value })
+    .eq('id', editFoodSuggestionId.value)
+    .select();
+
+  if (error) {
+    console.error('Error updating food suggestion:', error);
+    swal("Error", "An error occurred while updating the food suggestion. Please try again.", "error");
+  } else {
+    swal("Success", "Food suggestion updated successfully!", "success");
+    showEditModal.value = false;
+    fetchFoodSuggestions(); // Refresh the food suggestions list
+  }
+};
+
 const fetchUser = async () => {
   const { id } = route.params;
   let { data, error } = await supabase
@@ -299,12 +358,17 @@ onMounted(() => {
               <tr>
                 <th class="py-2 px-4 border-b">Food Suggestion</th>
                 <th class="py-2 px-4 border-b">Suggested At</th>
+                <th class="py-2 px-4 border-b">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="suggestion in foodSuggestions" :key="suggestion.id">
                 <td class="py-2 px-4 border-b">{{ suggestion.food_suggestion }}</td>
                 <td class="py-2 px-4 border-b">{{ new Date(suggestion.created_at).toLocaleString() }}</td>
+                <td class="py-2 px-4 border-b">
+                <button @click="editFoodSuggestionModal(suggestion)" class="mb-4 bg-yellow-500 text-white px-4 py-2 rounded-lg mr-2">Edit</button>
+                <button @click="confirmDeleteFoodSuggestion(suggestion.id)" class="bg-red-500 text-white px-4 py-2 rounded-lg">Delete</button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -359,6 +423,25 @@ onMounted(() => {
         </div>
       </div>
     </div>
+<!-- Edit Food Suggestion Modal -->
+<div v-if="showEditModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+    <h2 class="text-2xl font-bold mb-4">Edit Food Suggestion</h2>
+    <div class="mb-4">
+      <label class="block text-gray-700 text-sm font-bold mb-2" for="editFoodSuggestion">Food Suggestion</label>
+      <textarea v-model="editFoodSuggestion" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="editFoodSuggestion" rows="5" placeholder="Enter your food suggestion here..."></textarea>
+    </div>
+    <div class="flex justify-end">
+      <button @click="showEditModal = false" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-gray-600 transition duration-200">
+        Cancel
+      </button>
+      <button @click="updateFoodSuggestion" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200">
+        Update
+      </button>
+    </div>
+  </div>
+</div>
+
   </div>
 </template>
 
