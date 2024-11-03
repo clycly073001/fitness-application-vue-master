@@ -80,10 +80,8 @@ const searchFoods = async () => {
             <h3 class="text-xl font-semibold text-gray-800">{{ food.label }}</h3>
             <img :src="food.image" :alt="food.label" class="w-full h-40 object-cover rounded-lg mt-2">
             <p class="mt-2 text-gray-600"><strong>Known As:</strong> {{ food.knownAs }}</p>
-            <p class="mt-2 text-gray-600"><strong>Brand:</strong> {{ food.brand }}</p>
             <p class="mt-2 text-gray-600"><strong>Category:</strong> {{ food.category }}</p>
             <p class="mt-2 text-gray-600"><strong>Category Label:</strong> {{ food.categoryLabel }}</p>
-            <p class="mt-2 text-gray-600"><strong>Food Contents Label:</strong> {{ food.foodContentsLabel }}</p>
             <div class="mt-4">
               <h4 class="text-lg font-semibold text-gray-800">Nutrients</h4>
               <ul class="list-disc list-inside">
