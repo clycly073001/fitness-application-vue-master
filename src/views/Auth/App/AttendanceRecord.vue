@@ -183,7 +183,7 @@ onMounted(() => {
             <td class="py-2 px-4 border-b">{{ new Date(record.time_in).toLocaleString() }}</td>
             <td class="py-2 px-4 border-b">{{ record.time_out ? new Date(record.time_out).toLocaleString() : 'N/A' }}</td>
             <td class="py-2 px-4 border-b">
-              <button @click="confirmDelete(record.id)" class="bg-red-500 text-white px-4 py-2 rounded-lg">Delete</button>
+              <button @click="confirmDelete(record.id)" class="px-4 py-2 rounded-lg hover:bg-red-100"><img src="/public/item_images/delete (1).png" alt=""></button>
             </td>
           </tr>
         </tbody>
