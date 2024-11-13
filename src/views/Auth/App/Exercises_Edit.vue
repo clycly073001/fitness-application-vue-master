@@ -191,14 +191,22 @@ onMounted(() => {
             <label class="block mb-2 uppercase font-bold text-xs text-gray-700" for="type">
               Exercise Type
             </label>
-            <input
+            <select
               v-model="form.type"
-              type="text"
               class="border border-gray-400 p-2 w-full rounded-lg"
               name="type"
               id="type"
               required
-            />
+            >
+              <option value="" disabled>Select Exercise Type</option>
+              <option value="Abs Workout">Abs Workout</option>
+              <option value="Shoulders Workout">Shoulders Workout</option>
+              <option value="Arms Workout">Arms Workout</option>
+              <option value="Legs Workout">Legs Workout</option>
+              <option value="Back Workout">Back Workout</option>
+              <option value="Chest Workout">Chest Workout</option>
+              <option value="Cardio Workout">Cardio Workout</option>
+            </select>
             <span class="text-red-500 text-sm">{{ errors.type }}</span>
           </div>
 
