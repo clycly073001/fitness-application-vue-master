@@ -241,7 +241,7 @@ const goToShowItem = (id) => {
         <div v-for="item in itemsForSale" :key="item.id" class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
           <button @click="goToShowItem(item.id)" class="w-full text-left">
             <h2 class="text-xl font-semibold mb-2 text-blue-600 hover:underline">{{ item.name }}</h2> 
-            <p class="text-gray-900 font-bold mb-2">₱{{ item.price.toFixed(2) }}</p>
+            <p class="text-gray-900 font-bold mb-2">₱{{ item.price }}</p>
             <p class="text-gray-600">Quantity: {{ item.quantity }}</p>
           </button>
           <button 
@@ -280,9 +280,9 @@ const goToShowItem = (id) => {
             <p class="text-lg font-semibold text-gray-800">Item: {{ soldItem.items_for_sale.name }}</p>
             <p class="text-gray-600">Sold to: {{ soldItem.users.name }}</p>
             <p class="text-gray-600">Quantity: {{ soldItem.quantity }}</p>
-            <p class="text-gray-600">Payment Money: ₱{{ soldItem.payment_money.toFixed(2) }}</p>
-            <p class="text-gray-600">Total to be Paid: ₱{{ soldItem.to_be_paid.toFixed(2) }}</p>
-            <p class="text-gray-600">Change: ₱{{ soldItem.change.toFixed(2) }}</p>
+            <p class="text-gray-600">Payment Money: ₱{{ soldItem.payment_money }}</p>
+            <p class="text-gray-600">Total to be Paid: ₱{{ soldItem.to_be_paid }}</p>
+            <p class="text-gray-600">Change: ₱{{ soldItem.change }}</p>
             <p class="text-gray-500 text-sm">Date: {{ new Date(soldItem.created_at).toLocaleString() }}</p>
           </li>
         </ul>
@@ -370,15 +370,15 @@ const goToShowItem = (id) => {
           </div>
           <div>
             <p class="text-gray-500">Total to be Paid:</p>
-            <p>₱{{ detail.to_be_paid.toFixed(2) }}</p>
+            <p>₱{{ detail.to_be_paid }}</p>
           </div>
           <div>
             <p class="text-gray-500">Payment Money:</p>
-            <p>₱{{ detail.payment_money.toFixed(2) }}</p>
+            <p>₱{{ detail.payment_money }}</p>
           </div>
           <div>
             <p class="text-gray-500">Change:</p>
-            <p>₱{{ detail.change.toFixed(2) }}</p>
+            <p>₱{{ detail.change }}</p>
           </div>
         </div>
       </div>
