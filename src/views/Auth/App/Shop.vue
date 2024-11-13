@@ -2,23 +2,33 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'vue-router';
+import swal from 'sweetalert';
 
 const router = useRouter();
 const itemsForSale = ref([]);
-const soldItems = ref([]); // Add soldItems ref
+const soldItems = ref([]);
 const error = ref(null);
 const currentPage = ref(1);
 const itemsPerPage = 8;
 const totalItems = ref(0);
-const showModal = ref(false); // Add showModal ref
-const selectedItem = ref(null); // Add selectedItem ref
-const users = ref([]); // Add users ref
-const searchQuery = ref(''); // Add searchQuery ref
-const selectedUsers = ref([]); // Add selectedUsers ref
-const userQuantities = ref({}); // Add userQuantities ref
+const showModal = ref(false);
+const showReceiptModal = ref(false);
+const selectedItem = ref(null);
+const users = ref([]);
+const searchQuery = ref('');
+const selectedUsers = ref([]);
+const userQuantities = ref({});
+const userPayments = ref({});
+const transactionDetails = ref({
+  paymentMoney: 0,
+  toBePaid: 0,
+  change: 0,
+  items: []
+});
+const receiptDetails = ref([]);
 
-const soldItemsCurrentPage = ref(1); // Add current page for sold items
-const soldItemsPerPage = 5; // Maximum of 5 sold items per page
+const soldItemsCurrentPage = ref(1);
+const soldItemsPerPage = 5;
 
 const fetchItems = async (page = 1) => {
   const start = (page - 1) * itemsPerPage;
@@ -40,7 +50,7 @@ const fetchItems = async (page = 1) => {
 const fetchSoldItems = async () => {
   let { data, error } = await supabase
     .from('sold_items_to_users')
-    .select('id, created_at, item_id, user_id, quantity, items_for_sale(name), users(name)');
+    .select('id, created_at, item_id, user_id, quantity, payment_money, to_be_paid, change, items_for_sale(name, price), users(name)');
 
   if (error) {
     console.error('Error:', error);
@@ -63,7 +73,7 @@ const fetchUsers = async (query = '') => {
 };
 
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage));
-const soldItemsTotalPages = computed(() => Math.ceil(soldItems.value.length / soldItemsPerPage)); // Total pages for sold items
+const soldItemsTotalPages = computed(() => Math.ceil(soldItems.value.length / soldItemsPerPage));
 
 const goToPage = (page) => {
   if (page > 0 && page <= totalPages.value) {
@@ -87,14 +97,20 @@ const paginatedSoldItems = computed(() => {
 const openModal = (item) => {
   selectedItem.value = item;
   showModal.value = true;
-  fetchUsers(); // Fetch users when opening the modal
+  fetchUsers();
 };
 
 const closeModal = () => {
   showModal.value = false;
   selectedItem.value = null;
-  selectedUsers.value = []; // Clear selected users when closing the modal
-  userQuantities.value = {}; // Clear user quantities when closing the modal
+  selectedUsers.value = [];
+  userQuantities.value = {};
+  userPayments.value = {};
+};
+
+const closeTransactionModal = () => {
+  showReceiptModal.value = false;
+  receiptDetails.value = [];
 };
 
 const sellItemToUsers = async () => {
@@ -102,15 +118,51 @@ const sellItemToUsers = async () => {
     return;
   }
 
+  const { data: itemData, error: itemError } = await supabase
+    .from('items_for_sale')
+    .select('price')
+    .eq('id', selectedItem.value.id)
+    .single();
+
+  if (itemError) {
+    console.error('Error fetching item price:', itemError);
+    swal("Error", "An error occurred while fetching the item price. Please try again.", "error");
+    return;
+  }
+
   const records = selectedUsers.value.map(userId => ({
     item_id: selectedItem.value.id,
     user_id: userId,
-    quantity: userQuantities.value[userId] || 1 // Default to 1 if not specified
+    quantity: userQuantities.value[userId] || 1,
+    payment_money: userPayments.value[userId] || 0
   }));
 
-  const { error: insertError } = await supabase
+  const totalQuantitySold = selectedUsers.value.reduce((sum, userId) => sum + (userQuantities.value[userId] || 1), 0);
+  const toBePaid = totalQuantitySold * itemData.price;
+
+  transactionDetails.value = {
+    paymentMoney: records.reduce((sum, record) => sum + record.payment_money, 0),
+    toBePaid,
+    change: records.reduce((sum, record) => sum + record.payment_money, 0) - toBePaid,
+    items: records
+  };
+
+  await confirmTransaction();
+};
+
+const confirmTransaction = async () => {
+  const { paymentMoney, toBePaid, change, items } = transactionDetails.value;
+
+  const records = items.map(item => ({
+    ...item,
+    to_be_paid: item.quantity * selectedItem.value.price,
+    change: item.payment_money - (item.quantity * selectedItem.value.price)
+  }));
+
+  const { data: insertedRecords, error: insertError } = await supabase
     .from('sold_items_to_users')
-    .insert(records);
+    .insert(records)
+    .select();
 
   if (insertError) {
     console.error('Error:', insertError);
@@ -118,9 +170,7 @@ const sellItemToUsers = async () => {
     return;
   }
 
-  // Update the quantity of the item
-  const totalQuantitySold = selectedUsers.value.reduce((sum, userId) => sum + (userQuantities.value[userId] || 1), 0);
-  const newQuantity = selectedItem.value.quantity - totalQuantitySold;
+  const newQuantity = selectedItem.value.quantity - items.reduce((sum, item) => sum + item.quantity, 0);
   const { error: updateError } = await supabase
     .from('items_for_sale')
     .update({ quantity: newQuantity })
@@ -130,16 +180,35 @@ const sellItemToUsers = async () => {
     console.error('Error:', updateError);
     swal("Error", "An error occurred while updating the item quantity. Please try again.", "error");
   } else {
-    swal("Success", "Item sold to selected users successfully!", "success");
+    swal("Success", "Transaction completed successfully!", "success");
     closeModal();
-    fetchItems(currentPage.value); // Refresh items after updating quantity
-    fetchSoldItems(); // Refresh sold items after selling
+    fetchItems(currentPage.value);
+    fetchSoldItems();
   }
+
+  await fetchReceiptDetails(insertedRecords.map(record => record.id));
+  showModal.value = false; // Close the user selection modal
+  showReceiptModal.value = true; // Show the receipt modal
+};
+
+const fetchReceiptDetails = async (transactionIds) => {
+  const { data, error } = await supabase
+    .from('sold_items_to_users')
+    .select('id, created_at, item_id, user_id, quantity, payment_money, to_be_paid, change, items_for_sale(name, price), users(name)')
+    .in('id', transactionIds);
+
+  if (error) {
+    console.error('Error fetching receipt details:', error);
+    swal("Error", "An error occurred while fetching the receipt details. Please try again.", "error");
+    return;
+  }
+
+  receiptDetails.value = data;
 };
 
 onMounted(() => {
   fetchItems();
-  fetchSoldItems(); // Fetch sold items on mount
+  fetchSoldItems();
 });
 
 watch(searchQuery, (newQuery) => {
@@ -211,6 +280,9 @@ const goToShowItem = (id) => {
             <p class="text-lg font-semibold text-gray-800">Item: {{ soldItem.items_for_sale.name }}</p>
             <p class="text-gray-600">Sold to: {{ soldItem.users.name }}</p>
             <p class="text-gray-600">Quantity: {{ soldItem.quantity }}</p>
+            <p class="text-gray-600">Payment Money: ₱{{ soldItem.payment_money.toFixed(2) }}</p>
+            <p class="text-gray-600">Total to be Paid: ₱{{ soldItem.to_be_paid.toFixed(2) }}</p>
+            <p class="text-gray-600">Change: ₱{{ soldItem.change.toFixed(2) }}</p>
             <p class="text-gray-500 text-sm">Date: {{ new Date(soldItem.created_at).toLocaleString() }}</p>
           </li>
         </ul>
@@ -258,11 +330,18 @@ const goToShowItem = (id) => {
               class="ml-2 w-16 p-1 border border-gray-300 rounded-lg"
               placeholder="Qty"
             />
+            <input 
+              type="number" 
+              v-model="userPayments[user.id]" 
+              min="0" 
+              class="ml-2 w-24 p-1 border border-gray-300 rounded-lg"
+              placeholder="Payment"
+            />
           </li>
         </ul>
         <div class="flex justify-end mt-4">
           <button @click="sellItemToUsers" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-blue-400 transition-all duration-200 mr-2">
-            Sold
+            Sell
           </button>
           <button @click="closeModal" class="bg-gray-500 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-gray-400 transition-all duration-200">
             Close
@@ -270,6 +349,47 @@ const goToShowItem = (id) => {
         </div>
       </div>
     </div>
+
+    <div v-if="showReceiptModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+  <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6">Transaction Receipt</h2>
+    <div class="space-y-6">
+      <div v-for="detail in receiptDetails" :key="detail.id" class="bg-gray-100 p-6 rounded-lg">
+        <div class="flex justify-between items-center mb-4">
+          <p class="font-medium">{{ detail.items_for_sale.name }}</p>
+          <p class="text-gray-500 text-sm">{{ new Date(detail.created_at).toLocaleString() }}</p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-gray-500">Sold to:</p>
+            <p>{{ detail.users.name }}</p>
+          </div>
+          <div>
+            <p class="text-gray-500">Quantity:</p>
+            <p>{{ detail.quantity }}</p>
+          </div>
+          <div>
+            <p class="text-gray-500">Total to be Paid:</p>
+            <p>₱{{ detail.to_be_paid.toFixed(2) }}</p>
+          </div>
+          <div>
+            <p class="text-gray-500">Payment Money:</p>
+            <p>₱{{ detail.payment_money.toFixed(2) }}</p>
+          </div>
+          <div>
+            <p class="text-gray-500">Change:</p>
+            <p>₱{{ detail.change.toFixed(2) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end mt-6">
+      <button @click="closeTransactionModal" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-blue-600 transition-all duration-200">
+        OK
+      </button>
+    </div>
+  </div>
+</div>
   </div>
 </template>
 
