@@ -123,15 +123,15 @@ onMounted(() => {
             <td class="py-2 px-4 border-b text-center">
               <button 
                 @click="goToEditEquipment(item.id)" 
-                class="bg-yellow-500 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-yellow-400 transition-all duration-200 mr-2"
+                class="px-4 py-2 rounded-lg shadow hover:bg-yellow-200 transition-all duration-200 mr-2"
               >
-                Edit
+                <img src="/public/item_images/edit.png" alt="">
               </button>
               <button 
                 @click="confirmDelete(item.id)" 
-                class="bg-red-500 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-red-400 transition-all duration-200"
+                class="px-4 py-2 rounded-lg shadow hover:bg-red-200 transition-all duration-200" 
               >
-                Delete
+              <img src="/public/item_images/delete (1).png" alt="">
               </button>
             </td>
           </tr>

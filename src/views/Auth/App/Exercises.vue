@@ -148,17 +148,17 @@ watch([selectedType, searchQuery], () => {
           <p class="text-gray-600"><strong>Type:</strong> {{ exercise.type }}</p>
           <div class="flex space-x-3 mt-3">
             <router-link :to="`/application/exercises/${exercise.id}`">
-              <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200">
-                View
+              <button class="text-white px-4 py-2 rounded-lg hover:bg-blue-100 transition duration-200">
+                <img src="/public/item_images/view.png" alt="">
               </button>
             </router-link>
             <router-link :to="`/application/exercises/${exercise.id}/edit`">
-              <button class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition duration-200">
-                Edit
+              <button class="text-white px-4 py-2 rounded-lg hover:bg-yellow-100 transition duration-200">
+                <img src="/public/item_images/edit.png" alt="">
               </button>
             </router-link>
-            <button @click="confirmDeleteExercise(exercise.id)" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-200">
-              Delete
+            <button @click="confirmDeleteExercise(exercise.id)" class="text-white px-4 py-2 rounded-lg hover:bg-red-100 transition duration-200">
+              <img src="/public/item_images/delete (1).png" alt="">
             </button>
           </div>
         </div>
