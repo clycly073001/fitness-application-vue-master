@@ -66,6 +66,7 @@ const logout = async () => {
         <RouterLink to="/application/dashboard" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Dashboard</RouterLink>
         <RouterLink to="/application/users" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Members</RouterLink>
         <RouterLink to="/application/exercises" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Exercises</RouterLink>
+        <RouterLink v-if="user && user.role !== 'user'" to="/application/equipment" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Equipment</RouterLink>
         <RouterLink to="/application/nutrition" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Nutrition</RouterLink>
         <RouterLink v-if="user && user.role !== 'user'" to="/application/shop" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Shop</RouterLink>
         <RouterLink v-if="user && user.role !== 'admin'" to="/application/your-attendance-record" class="py-2 px-4 rounded hover:bg-gray-700" active-class="bg-gray-700">Your Attendance Record</RouterLink>

@@ -21,6 +21,9 @@ import Attendance from '@/views/Auth/App/Attendance.vue';
 import swal from 'sweetalert';
 import { supabase } from '@/lib/supabaseClient';
 import AttendanceRecord from '@/views/Auth/App/AttendanceRecord.vue';
+import Equipment from '@/views/Auth/App/Equipment.vue';
+import Equipment_Create from '@/views/Auth/App/Equipment_Add.vue';
+import Equipment_Edit from '@/views/Auth/App/Equipment_Edit.vue';
 
 const routes = [
   {
@@ -214,6 +217,24 @@ const routes = [
         name: 'AttendanceSheet',
         component: AttendanceRecord,
         meta: { title: 'Fiber Muscle - Attendance Records' }
+      },
+      {
+        path: 'equipment',
+        name: 'Equipment',
+        component: Equipment,
+        meta: { title: 'Fiber Muscle - Equipment' }
+      },      
+      {
+        path: 'equipment/add',
+        name: 'Equipment-Create',
+        component: Equipment_Create,
+        meta: { title: 'Fiber Muscle - Add Equipment' }
+      },
+      {
+        path: 'equipment/edit/:id',
+        name: 'Equipment-Edit',
+        component: Equipment_Edit,
+        meta: { title: 'Fiber Muscle - Edit Equipment' }
       },
       {
         path: '/:pathMatch(.*)*',
