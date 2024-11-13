@@ -6,6 +6,7 @@ import swal from 'sweetalert';
 
 const route = useRoute();
 const exercise = ref(null);
+const equipmentNames = ref([]);
 
 const fetchExercise = async () => {
   const { id } = route.params;
@@ -20,6 +21,20 @@ const fetchExercise = async () => {
     swal("Error", "An error occurred while fetching the exercise. Please try again.", "error");
   } else {
     exercise.value = data;
+    fetchEquipmentNames(id);
+  }
+};
+
+const fetchEquipmentNames = async (exerciseId) => {
+  let { data, error } = await supabase
+    .from('exercise_equipment')
+    .select('equipment_id, equipment(name)')
+    .eq('exercise_id', exerciseId);
+
+  if (error) {
+    console.error('Error fetching equipment:', error);
+  } else {
+    equipmentNames.value = data.map(e => e.equipment.name);
   }
 };
 
@@ -47,7 +62,7 @@ const getYouTubeEmbedUrl = (url) => {
       <h1 class="text-4xl font-extrabold text-gray-800 mb-4">{{ exercise.name }}</h1>
       <div class="space-y-4">
         <p class="text-lg text-gray-700"><strong>Type:</strong> <span class="text-gray-500">{{ exercise.type }}</span></p>
-        <p class="text-lg text-gray-700"><strong>Equipment:</strong> <span class="text-gray-500">{{ exercise.equipment }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Equipment:</strong> <span class="text-gray-500">{{ equipmentNames.join(', ') }}</span></p>
         <p class="text-lg text-gray-700"><strong>Execution:</strong> <span class="text-gray-500" v-html="exercise.execution"></span></p>
         <p class="text-lg text-gray-700"><strong>Rest:</strong> <span class="text-gray-500">{{ exercise.rest }} seconds</span></p>
         <p class="text-lg text-gray-700"><strong>Link:</strong> <span class="text-gray-500"><a :href="exercise.link" target="_blank">{{ exercise.link }}</a></span></p>

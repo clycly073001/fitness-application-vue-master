@@ -6,30 +6,43 @@ import swal from 'sweetalert';
 let form = ref({
   name: '',
   type: '',
-  equipment: '',
   execution: '',
   rest: '',
-  link: '' // Add link field
+  link: ''
 });
 
 const errors = ref({
   name: '',
   type: '',
-  equipment: '',
   execution: '',
   rest: '',
-  link: '' // Add link field
+  link: ''
 });
+
+const equipmentList = ref([]);
+const selectedEquipment = ref([]);
+const showModal = ref(false);
+
+const fetchEquipment = async () => {
+  let { data, error } = await supabase
+    .from('equipment')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching equipment:', error);
+  } else {
+    equipmentList.value = data;
+  }
+};
 
 const validateForm = () => {
   let valid = true;
   errors.value = {
     name: '',
     type: '',
-    equipment: '',
     execution: '',
     rest: '',
-    link: '' // Add link field
+    link: ''
   };
 
   if (!form.value.name) {
@@ -40,8 +53,8 @@ const validateForm = () => {
     errors.value.type = 'Exercise type is required';
     valid = false;
   }
-  if (!form.value.equipment) {
-    errors.value.equipment = 'Exercise equipment is required';
+  if (selectedEquipment.value.length === 0) {
+    errors.value.equipment_id = 'At least one equipment is required';
     valid = false;
   }
   if (!form.value.execution) {
@@ -68,36 +81,55 @@ const createExercise = async () => {
     return;
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('exercises')
     .insert([
       {
         name: form.value.name,
         type: form.value.type,
-        equipment: form.value.equipment,
         execution: form.value.execution,
         rest: form.value.rest,
-        link: form.value.link, // Add link field
+        link: form.value.link,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
-    ]);
+    ])
+    .select();
 
   if (error) {
     console.error('Error:', error);
     swal("Error", "An error occurred while creating the exercise. Please try again.", "error");
   } else {
-    swal("Success", "Exercise created successfully!", "success");
-    form.value = {
-      name: '',
-      type: '',
-      equipment: '',
-      execution: '',
-      rest: '',
-      link: '' // Reset link field
-    };
+    const exerciseId = data[0].id;
+    const exerciseEquipmentRecords = selectedEquipment.value.map(equipmentId => ({
+      exercise_id: exerciseId,
+      equipment_id: equipmentId
+    }));
+
+    const { error: insertError } = await supabase
+      .from('exercise_equipment')
+      .insert(exerciseEquipmentRecords);
+
+    if (insertError) {
+      console.error('Error:', insertError);
+      swal("Error", "An error occurred while linking the equipment. Please try again.", "error");
+    } else {
+      swal("Success", "Exercise created successfully!", "success");
+      form.value = {
+        name: '',
+        type: '',
+        execution: '',
+        rest: '',
+        link: ''
+      };
+      selectedEquipment.value = [];
+    }
   }
 };
+
+onMounted(() => {
+  fetchEquipment();
+});
 </script>
 
 <template>
@@ -142,14 +174,15 @@ const createExercise = async () => {
               Exercise Equipment
             </label>
             <input
-              v-model="form.equipment"
               type="text"
               class="border border-gray-400 p-2 w-full rounded-lg"
               name="equipment"
               id="equipment"
-              required
+              readonly
+              @click="showModal = true"
+              :value="selectedEquipment.map(id => equipmentList.find(e => e.id === id)?.name).filter(Boolean).join(', ')"
             />
-            <span class="text-red-500 text-sm">{{ errors.equipment }}</span>
+            <span class="text-red-500 text-sm">{{ errors.equipment_id }}</span>
           </div>
 
           <div class="mb-6">
@@ -207,13 +240,35 @@ const createExercise = async () => {
         </form>
       </div>
     </div>
+
+    <!-- Equipment Modal -->
+    <div v-if="showModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4">Select Equipment</h2>
+        <ul class="max-h-60 overflow-y-auto">
+          <li v-for="equipment in equipmentList" :key="equipment.id" class="flex items-center mb-2">
+            <input 
+              type="checkbox" 
+              :id="`equipment-${equipment.id}`" 
+              v-model="selectedEquipment" 
+              :value="equipment.id" 
+              class="mr-2"
+            />
+            <label :for="`equipment-${equipment.id}`" class="text-gray-700">{{ equipment.name }}</label>
+          </li>
+        </ul>
+        <div class="flex justify-end mt-4">
+          <button @click="showModal = false" class="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-blue-400 transition-all duration-200">
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-
-body {
-  font-family: 'Roboto', sans-serif;
+.container {
+  max-width: 600px;
 }
 </style>
