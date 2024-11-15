@@ -24,6 +24,8 @@ import AttendanceRecord from '@/views/Auth/App/AttendanceRecord.vue';
 import Equipment from '@/views/Auth/App/Equipment.vue';
 import Equipment_Create from '@/views/Auth/App/Equipment_Add.vue';
 import Equipment_Edit from '@/views/Auth/App/Equipment_Edit.vue';
+import Meals from '@/views/Auth/App/Meals.vue';
+import Meals_Show from '@/views/Auth/App/Meals_Show.vue';
 
 const routes = [
   {
@@ -139,6 +141,18 @@ const routes = [
         name: 'Nutrition',
         component: Nutrition,
         meta: { title: 'Fiber Muscle - Nutrition' }
+      },
+      {
+        path: 'nutrition/saved-meals',
+        name: 'SavedMeals',
+        component: Meals,
+        meta: { title: 'Fiber Muscle - Saved Meals' }
+      },
+      {
+        path: 'nutrition/saved-meals/:id',
+        name: 'SavedMeals_Show',
+        component: Meals_Show,
+        meta: { title: 'Fiber Muscle - Meal Details' }
       },
       {
         path: 'shop',

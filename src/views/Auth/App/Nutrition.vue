@@ -1,11 +1,14 @@
 <script setup>
 import { ref } from 'vue';
 import axios from 'axios';
+import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'vue-router';
 
 const apiKey = 'be3c7db77b8e4535986e7e694e2d88a2';
 const query = ref('');
 const recipes = ref([]);
 const loading = ref(false); // Add loading state
+const router = useRouter();
 
 const searchRecipes = async () => {
   loading.value = true; // Set loading to true when search starts
@@ -33,17 +36,90 @@ const searchRecipes = async () => {
         return {
           ...recipe,
           nutrition: nutritionResponse.data,
-          taste: tasteResponse.data,
         };
       })
     );
 
     recipes.value = detailedRecipes;
+
+    // Save the relevant data to the database
+    await saveRecipesToDatabase(detailedRecipes);
   } catch (error) {
     console.error('Error fetching recipes:', error);
   } finally {
     loading.value = false; // Set loading to false when search completes
   }
+};
+
+const saveRecipesToDatabase = async (recipes) => {
+  try {
+    const meals = recipes.map(recipe => {
+      const calories = recipe.nutrition.nutrients.find(nutrient => nutrient.name === 'Calories')?.amount || 0;
+      return {
+        title: recipe.title,
+        summary: recipe.summary,
+        calories: calories
+      };
+    });
+
+    const { error } = await supabase
+      .from('meals')
+      .insert(meals);
+
+    if (error) {
+      console.error('Error saving meals to database:', error);
+    } else {
+      console.log('Meals saved to database successfully');
+    }
+  } catch (error) {
+    console.error('Error saving recipes to database:', error);
+  }
+};
+
+const suggestFoodsBasedOnBMI = async () => {
+  try {
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, weight, height');
+
+    if (error) {
+      console.error('Error fetching users:', error);
+      return;
+    }
+
+    for (const user of users) {
+      const bmi = user.weight / ((user.height / 100) ** 2);
+      let suggestion = '';
+
+      if (bmi < 18.5) {
+        suggestion = 'Focus on energy-dense foods like nuts, seeds, avocados, whole-grain bread, dairy, and lean proteins to promote healthy weight gain while avoiding empty-calorie junk foods.';
+      } else if (bmi >= 18.5 && bmi <= 24.9) {
+        suggestion = 'Maintain a balanced diet rich in whole grains, fruits, vegetables, lean proteins, and healthy fats to sustain good health and energy levels.';
+      } else if (bmi >= 25 && bmi <= 29.9) {
+        suggestion = 'Prioritize high-fiber, low-calorie foods such as leafy greens, whole grains, legumes, lean proteins, and fruits with moderate glycemic indices to help manage weight while staying nourished.';
+      } else if (bmi >= 30) {
+        suggestion = 'Emphasize vegetables, high-quality proteins like fish or tofu, low-fat dairy, and whole grains while limiting processed foods, sugary snacks, and refined carbs to support weight loss efforts.';
+      }
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ auto_food_suggestion: suggestion })
+        .eq('id', user.id)
+        .select();
+
+      if (updateError) {
+        console.error(`Error updating user ${user.id}:`, updateError);
+      }
+    }
+
+    swal("Success", "Food suggestions based on BMI have been updated for all users.", "success");
+  } catch (error) {
+    console.error('Error suggesting foods based on BMI:', error);
+  }
+};
+
+const goToSavedMeals = () => {
+  router.push('/application/nutrition/saved-meals');
 };
 </script>
 
@@ -64,6 +140,18 @@ const searchRecipes = async () => {
           </button>
         </div>
       </form>
+    </div>
+
+    <div class="mt-6">
+      <button @click="suggestFoodsBasedOnBMI" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+        Auto Suggest Foods for Users Based on Their BMI
+      </button>
+    </div>
+
+    <div class="mt-6">
+      <button @click="goToSavedMeals" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+        Saved Meals
+      </button>
     </div>
 
     <div class="mt-8">

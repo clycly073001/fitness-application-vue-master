@@ -22,22 +22,25 @@ const showEditModal = ref(false);
 const editFoodSuggestion = ref('');
 const editFoodSuggestionId = ref(null);
 
-const deleteFoodSuggestion = async (suggestionId) => {
+const deleteFoodSuggestion = async (mealId) => {
+  const { id: userId } = route.params;
+
   const { error } = await supabase
-    .from('foods_for_users')
+    .from('meals_users')
     .delete()
-    .eq('id', suggestionId);
+    .eq('user_id', userId)
+    .eq('meal_id', mealId);
 
   if (error) {
     console.error('Error deleting food suggestion:', error);
     swal("Error", "An error occurred while deleting the food suggestion. Please try again.", "error");
   } else {
-    foodSuggestions.value = foodSuggestions.value.filter(suggestion => suggestion.id !== suggestionId);
+    foodSuggestions.value = foodSuggestions.value.filter(suggestion => suggestion.meal_id !== mealId);
     swal("Success", "Food suggestion deleted successfully!", "success");
   }
 };
 
-const confirmDeleteFoodSuggestion = (suggestionId) => {
+const confirmDeleteFoodSuggestion = (mealId) => {
   swal({
     title: "Are you sure?",
     text: "Once deleted, you will not be able to recover this food suggestion!",
@@ -47,7 +50,7 @@ const confirmDeleteFoodSuggestion = (suggestionId) => {
   })
   .then((willDelete) => {
     if (willDelete) {
-      deleteFoodSuggestion(suggestionId);
+      deleteFoodSuggestion(mealId);
     } else {
       swal("Your food suggestion is safe!");
     }
@@ -156,17 +159,35 @@ const fetchAssignedExercises = async (page = 1) => {
   }
 };
 
-const fetchFoodSuggestions = async () => {
+const fetchFoodSuggestions = async (page = 1) => {
   const { id: userId } = route.params;
+  const from = (page - 1) * itemsPerPage.value;
+  const to = from + itemsPerPage.value - 1;
+
   let { data, error } = await supabase
-    .from('foods_for_users')
-    .select('food_suggestion, created_at')
-    .eq('user_id', userId);
+    .from('meals_users')
+    .select('meal_id, created_at')
+    .eq('user_id', userId)
+    .range(from, to);
 
   if (error) {
-    console.error('Error fetching food suggestions:', error);
+    console.error('Error:', error);
+    swal("Error", "An error occurred while fetching food suggestions. Please try again.", "error");
   } else {
-    foodSuggestions.value = data;
+    foodSuggestions.value = await Promise.all(data.map(async (suggested) => {
+      const { data: mealDetails, error: mealError } = await supabase
+        .from('meals')
+        .select('*')
+        .eq('id', suggested.meal_id)
+        .single();
+
+      if (mealError) {
+        console.error('Error:', mealError);
+        return null;
+      }
+
+      return { ...suggested, ...mealDetails };
+    }));
   }
 };
 
@@ -232,31 +253,45 @@ const confirmDelete = (exerciseId) => {
   });
 };
 
-const suggestFood = async () => {
-  const { id: userId } = route.params;
-  const now = new Date().toISOString();
+const meals = ref([]);
+const selectedMeals = ref([]);
 
-  const { error } = await supabase
-    .from('foods_for_users')
-    .insert([
-      { user_id: userId, food_suggestion: foodSuggestion.value, created_at: now },
-    ])
-    .select();
+const fetchMeals = async () => {
+  let { data, error } = await supabase
+    .from('meals')
+    .select('*');
 
   if (error) {
-    console.error('Error suggesting food:', error);
-    swal("Error", "An error occurred while suggesting food. Please try again.", "error");
+    console.error('Error fetching meals:', error);
+    swal("Error", "An error occurred while fetching meals. Please try again.", "error");
   } else {
-    swal("Success", "Food suggestion added successfully!", "success");
-    showSuggestModal.value = false;
-    foodSuggestion.value = '';
-    fetchFoodSuggestions(); // Refresh the food suggestions list
+    meals.value = data;
   }
 };
 
-const changePage = (page) => {
-  currentPage.value = page;
-  fetchAssignedExercises(page);
+const suggestFood = async () => {
+  const { id: userId } = route.params;
+  const now = new Date().toISOString();
+  const rows = selectedMeals.value.map(mealId => ({
+    user_id: userId,
+    meal_id: mealId,
+    created_at: now
+  }));
+
+  const { error } = await supabase
+    .from('meals_users')
+    .insert(rows)
+    .select();
+
+  if (error) {
+    console.error('Error:', error);
+    swal("Error", "An error occurred while suggesting foods. Please try again.", "error");
+  } else {
+    swal("Success", "Foods suggested successfully!", "success");
+    showSuggestModal.value = false;
+    selectedMeals.value = [];
+    fetchFoodSuggestions(); // Refresh the food suggestions list
+  }
 };
 
 onMounted(() => {
@@ -264,6 +299,7 @@ onMounted(() => {
   fetchExercises();
   fetchAssignedExercises();
   fetchFoodSuggestions();
+  fetchMeals(); // Fetch meals for the suggest food modal
 });
 </script>
 
@@ -351,30 +387,35 @@ onMounted(() => {
         </div>
       </div>
       <div class="mt-6">
-        <h2 class="text-2xl font-bold mb-4">Food Suggestions</h2>
-        <div class="overflow-x-auto">
-          <table v-if="foodSuggestions.length > 0" class="min-w-full bg-white">
-            <thead>
-              <tr>
-                <th class="py-2 px-4 border-b">Food Suggestion</th>
-                <th class="py-2 px-4 border-b">Suggested At</th>
-                <th class="py-2 px-4 border-b">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="suggestion in foodSuggestions" :key="suggestion.id">
-                <td class="py-2 px-4 border-b">{{ suggestion.food_suggestion }}</td>
-                <td class="py-2 px-4 border-b">{{ new Date(suggestion.created_at).toLocaleString() }}</td>
-                <td class="py-2 px-4 border-b">
-                <button @click="editFoodSuggestionModal(suggestion)" class="mb-4 bg-yellow-500 text-white px-4 py-2 rounded-lg mr-2">Edit</button>
-                <button @click="confirmDeleteFoodSuggestion(suggestion.id)" class="bg-red-500 text-white px-4 py-2 rounded-lg">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <p v-else class="text-center text-gray-600">No food suggestions</p>
-        </div>
-      </div>
+  <h2 class="text-2xl font-bold mb-4">Food Suggestions</h2>
+  <div class="overflow-x-auto">
+    <table v-if="foodSuggestions.length > 0" class="min-w-full bg-white">
+      <thead>
+        <tr>
+          <th class="py-2 px-4 border-b">Meal Name</th>
+          <th class="py-2 px-4 border-b">Calories</th>
+          <th class="py-2 px-4 border-b">Suggested At</th>
+          <th class="py-2 px-4 border-b">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="suggestion in foodSuggestions" :key="suggestion.meal_id">
+          <td class="py-2 px-4 border-b">
+            <router-link :to="{ name: 'SavedMeals_Show', params: { id: suggestion.meal_id } }" class="text-blue-600 hover:underline">
+              {{ suggestion.title }}
+            </router-link>
+          </td>
+          <td class="py-2 px-4 border-b">{{ suggestion.calories }}</td>
+          <td class="py-2 px-4 border-b">{{ new Date(suggestion.created_at).toLocaleString() }}</td>
+          <td class="py-2 px-4 border-b">
+            <button @click="confirmDeleteFoodSuggestion(suggestion.meal_id)" class="bg-red-500 text-white px-4 py-2 rounded-lg">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p v-else class="text-center text-gray-600">No food suggestions</p>
+  </div>
+</div>
     </div>
     <div v-else class="flex justify-center items-center h-full min-h-screen">
       <p class="text-center">No user found.</p>
@@ -406,23 +447,30 @@ onMounted(() => {
     </div>
 
     <!-- Suggest Foods Modal -->
-    <div v-if="showSuggestModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
-      <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-2xl font-bold mb-4">Suggest Food</h2>
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="foodSuggestion">Food Suggestion</label>
-          <textarea v-model="foodSuggestion" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="foodSuggestion" rows="5" placeholder="Enter your food suggestion here..."></textarea>
-        </div>
-        <div class="flex justify-end">
-          <button @click="showSuggestModal = false" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-gray-600 transition duration-200">
-            Cancel
-          </button>
-          <button @click="suggestFood" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500 transition duration-200">
-            Suggest
-          </button>
-        </div>
-      </div>
+<!-- Suggest Foods Modal -->
+<div v-if="showSuggestModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+    <h2 class="text-2xl font-bold mb-4">Suggest Food(s)</h2>
+    <div class="max-h-60 overflow-y-auto mb-4">
+      <ul>
+        <li v-for="meal in meals" :key="meal.id" class="mb-2">
+          <label class="flex items-center">
+            <input type="checkbox" v-model="selectedMeals" :value="meal.id" class="mr-2">
+            {{ meal.title }}
+          </label>
+        </li>
+      </ul>
     </div>
+    <div class="flex justify-end">
+      <button @click="showSuggestModal = false" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-gray-600 transition duration-200">
+        Cancel
+      </button>
+      <button @click="suggestFood" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500 transition duration-200">
+        Suggest
+      </button>
+    </div>
+  </div>
+</div>
 <!-- Edit Food Suggestion Modal -->
 <div v-if="showEditModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
   <div class="bg-white p-6 rounded-lg shadow-lg w-96">
