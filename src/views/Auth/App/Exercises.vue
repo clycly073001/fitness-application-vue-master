@@ -10,6 +10,7 @@ const totalExercises = ref(0);
 const totalPages = ref(0);
 const selectedType = ref(''); // Add a ref for the selected type
 const searchQuery = ref(''); // Add a ref for the search query
+const exercisesWithoutEquipment = ref([]);
 
 const exerciseTypes = [
   'Abs Workout',
@@ -47,6 +48,29 @@ const fetchExercises = async (page) => {
     exercises.value = data;
     totalExercises.value = count;
     totalPages.value = Math.ceil(count / pageSize);
+    await fetchExercisesWithoutEquipment();
+  }
+};
+
+const fetchExercisesWithoutEquipment = async () => {
+  let { data: exerciseEquipment, error } = await supabase
+    .from('exercise_equipment')
+    .select('exercise_id');
+
+  if (error) {
+    console.error('Error fetching exercise equipment:', error);
+  } else {
+    const exerciseIdsWithEquipment = exerciseEquipment.map(e => e.exercise_id);
+    let { data, error: fetchError } = await supabase
+      .from('exercises')
+      .select('id')
+      .not('id', 'in', exerciseIdsWithEquipment);
+
+    if (fetchError) {
+      console.error('Error fetching exercises without equipment:', fetchError);
+    } else {
+      exercisesWithoutEquipment.value = data.map(exercise => exercise.id);
+    }
   }
 };
 
@@ -117,7 +141,6 @@ watch([selectedType, searchQuery], () => {
   fetchExercises(currentPage.value);
 });
 </script>
-
 <template>
   <div class="min-h-screen bg-gray-50 p-6">
     <div class="flex justify-between items-center mb-6">
@@ -143,9 +166,10 @@ watch([selectedType, searchQuery], () => {
     </div>
     <div v-if="exercises.length">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="exercise in exercises" :key="exercise.id" class="bg-white shadow-md rounded-lg p-5 transition-transform transform hover:scale-105">
+        <div v-for="exercise in exercises" :key="exercise.id" :class="{'bg-gray-200': exercisesWithoutEquipment.includes(exercise.id), 'bg-white': !exercisesWithoutEquipment.includes(exercise.id)}" class="shadow-md rounded-lg p-5 transition-transform transform hover:scale-105">
           <h2 class="text-lg font-semibold text-gray-700">{{ exercise.name }}</h2>
           <p class="text-gray-600"><strong>Type:</strong> {{ exercise.type }}</p>
+          <p v-if="exercisesWithoutEquipment.includes(exercise.id)" class="text-red-500 mt-2">This exercise doesn't have appropriate equipment</p>
           <div class="flex space-x-3 mt-3">
             <router-link :to="`/application/exercises/${exercise.id}`">
               <button class="text-white px-4 py-2 rounded-lg hover:bg-blue-100 transition duration-200">

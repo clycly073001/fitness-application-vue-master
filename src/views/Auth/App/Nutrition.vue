@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router';
 
 const apiKey = 'be3c7db77b8e4535986e7e694e2d88a2';
 const query = ref('');
+const mealType = ref(''); // Add a ref for the meal type
 const recipes = ref([]);
 const loading = ref(false); // Add loading state
 const router = useRouter();
@@ -17,6 +18,7 @@ const searchRecipes = async () => {
       params: {
         apiKey,
         query: query.value,
+        type: mealType.value, // Include meal type in the search parameters
         addRecipeInformation: true,
         addRecipeNutrition: true,
       },
@@ -54,11 +56,23 @@ const searchRecipes = async () => {
 const saveRecipesToDatabase = async (recipes) => {
   try {
     const meals = recipes.map(recipe => {
-      const calories = recipe.nutrition.nutrients.find(nutrient => nutrient.name === 'Calories')?.amount || 0;
+      const nutrients = recipe.nutrition.nutrients.reduce((acc, nutrient) => {
+        acc[nutrient.name.toLowerCase()] = nutrient.amount;
+        return acc;
+      }, {});
+
       return {
         title: recipe.title,
         summary: recipe.summary,
-        calories: calories
+        calories: nutrients.calories || 0,
+        fat: nutrients.fat || 0,
+        carbohydrates: nutrients.carbohydrates || 0,
+        sugar: nutrients.sugar || 0,
+        cholesterol: nutrients.cholesterol || 0,
+        protein: nutrients.protein || 0,
+        potassium: nutrients.potassium || 0,
+        fiber: nutrients.fiber || 0,
+        mealtype: mealType.value // Include meal type
       };
     });
 
@@ -122,7 +136,6 @@ const goToSavedMeals = () => {
   router.push('/application/nutrition/saved-meals');
 };
 </script>
-
 <template>
   <div class="min-h-screen bg-gray-50 p-6">
     <h1 class="text-3xl font-bold mb-4">Nutrition</h1>
@@ -133,6 +146,16 @@ const goToSavedMeals = () => {
         <div>
           <label class="block text-gray-700 text-sm font-bold mb-2" for="query">Query</label>
           <input v-model="query" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="query" type="text" placeholder="e.g., chicken">
+        </div>
+        <div>
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="meal-type">Meal Type</label>
+          <select v-model="mealType" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="meal-type">
+            <option value="">Select Meal Type</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+          </select>
         </div>
         <div>
           <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">

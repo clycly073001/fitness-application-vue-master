@@ -35,6 +35,14 @@ onMounted(() => {
       <div class="space-y-4">
         <p class="text-lg text-gray-700" v-html="meal.summary"></p>
         <p class="text-lg text-gray-700"><strong>Calories:</strong> <span class="text-gray-500">{{ meal.calories }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Fat:</strong> <span class="text-gray-500">{{ meal.fat }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Carbohydrates:</strong> <span class="text-gray-500">{{ meal.carbohydrates }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Sugar:</strong> <span class="text-gray-500">{{ meal.sugar }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Cholesterol:</strong> <span class="text-gray-500">{{ meal.cholesterol }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Protein:</strong> <span class="text-gray-500">{{ meal.protein }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Potassium:</strong> <span class="text-gray-500">{{ meal.potassium }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Fiber:</strong> <span class="text-gray-500">{{ meal.fiber }}</span></p>
+        <p class="text-lg text-gray-700"><strong>Meal Type:</strong> <span class="text-gray-500">{{ meal.mealtype }}</span></p>
       </div>
       <router-link to="/application/nutrition/saved-meals" class="mt-6 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-500 transition duration-200">
         Back to Saved Meals
