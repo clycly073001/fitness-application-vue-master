@@ -243,6 +243,12 @@ const calculateSalesStatistics = async () => {
   }).sort((a, b) => b.totalSales - a.totalSales);
 };
 
+const showPolicyModal = ref(false);
+
+const togglePolicyModal = () => {
+  showPolicyModal.value = !showPolicyModal.value;
+};
+
 onMounted(async () => {
   await fetchUserData();
   await calculateMembershipStatistics();
@@ -257,11 +263,14 @@ onMounted(async () => {
   <div class="min-h-screen bg-gray-100 p-8">
     <div class="flex justify-between">
       <h1 class="text-4xl font-bold mb-4 text-gray-800">Dashboard</h1>
+
       <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform mb-10">
         <h2 class="text-xl font-bold mb-2 text-blue-600">Quick Actions</h2>
         <button @click="navigateTo('/application/exercises/create')" class="bg-blue-500 text-white px-4 py-2 rounded-lg mr-2 transition-colors duration-300 hover:bg-blue-600">Add New Exercise</button>
         <button @click="navigateTo('/application/users/create')" class="bg-green-500 text-white px-4 py-2 rounded-lg mr-2 transition-colors duration-300 hover:bg-green-600">Add New Member</button>
         <button @click="navigateTo('/application/shop/create')" class="bg-purple-500 text-white px-4 py-2 rounded-lg mb-2 transition-colors duration-300 hover:bg-purple-600">Add Item</button>
+              <!-- Add this button somewhere in your existing template -->
+<button @click="togglePolicyModal" class="bg-blue-500 text-white px-4 py-2 rounded-lg ml-2 transition-colors duration-300 hover:bg-blue-600">Policies</button>
       </div>
     </div>
 
@@ -430,70 +439,73 @@ onMounted(async () => {
         </ul>
       </div>
     </div>
-
-    <div class="bg-white p-6 rounded-lg mt-4 shadow-lg transition-transform transform">
-      <h2 class="text-2xl font-bold text-blue-600 mb-4">Fiber Muscle System Policy</h2>
-      <p><strong>Effective Date:</strong> 2024 - 2030</p>
-      <p><strong>Policy Statement:</strong></p>
-      <p>Fiber Muscle is committed to fostering a productive, respectful, and organized gym environment by ensuring proper use of gym equipment and adherence to gym etiquette. This policy outlines the rules and responsibilities for members, administrators, and staff using the Fiber Muscle system.</p>
-      <hr class="my-4">
-      <h3 class="text-xl font-bold mb-2">Scope</h3>
-      <p>This policy applies to all members and staff who utilize the Fiber Muscle web and mobile applications. It governs the management of gym memberships, attendance tracking, exercise recommendations, and the assignment of workout plans.</p>
-      <hr class="my-4">
-      <h3 class="text-xl font-bold mb-2">Gym Policies and Guidelines</h3>
-      <ol class="list-decimal list-inside">
-        <li><strong>Equipment Usage:</strong>
-          <ul class="list-disc list-inside ml-4">
-            <li>Dumbbells must not be slammed or thrown. Handle them with care to ensure safety and prevent damage.</li>
-            <li>Return all weights, dumbbells, and plates to their designated racks after use.</li>
-          </ul>
-        </li>
-        <li><strong>System Access and Data Integrity:</strong>
-          <ul class="list-disc list-inside ml-4">
-            <li>Only authorized personnel may access the admin features of the Fiber Muscle web app.</li>
-            <li>Personal member information must remain confidential and must not be shared without consent.</li>
-          </ul>
-        </li>
-        <li><strong>Membership Management:</strong>
-          <ul class="list-disc list-inside ml-4">
-            <li>Registered users are automatically considered gym members.</li>
-            <li>Memberships are renewable on a monthly basis only.</li>
-            <li>Expired memberships can be renewed for an additional month.</li>
-            <li>During membership renewal, members must visit the gym in person to complete the renewal process through the Fiber Muscle admin system.</li>
-          </ul>
-        </li>
-        <li><strong>Attendance Management:</strong>
-          <ul class="list-disc list-inside ml-4">
-            <li>Members must scan their QR codes upon entering the gym to record their attendance automatically.</li>
-            <li>Members who are away can still have their attendance recorded by submitting a video of their exercise performance.</li>
-          </ul>
-        </li>
-        <li><strong>Exercise Recommendations:</strong>
-          <ul class="list-disc list-inside ml-4">
-            <li>BMI-based exercise suggestions are provided. Members are encouraged to consult a fitness professional for personalized advice.</li>
-            <li>Videos provided in the system are for reference purposes only and should be followed carefully to avoid injuries.</li>
-          </ul>
-        </li>
-        <li><strong>Responsibility and Conduct:</strong>
-          <ul class="list-disc list-inside ml-4">
-            <li>Maintain proper gym etiquette by respecting fellow members and handling equipment responsibly.</li>
-            <li>Report any issues with equipment or the system to the staff promptly.</li>
-          </ul>
-        </li>
-      </ol>
-      <hr class="my-4">
-      <h3 class="text-xl font-bold mb-2">Compliance and Enforcement</h3>
-      <p>Failure to adhere to these policies may result in:</p>
-      <ul class="list-disc list-inside ml-4">
-        <li>Temporary suspension of gym access.</li>
-        <li>Revocation of system privileges.</li>
-        <li>Other consequences as determined by the gym management team.</li>
-      </ul>
-      <p><strong>Approval:</strong></p>
-      <p>Juan Dela Cruz</p>
-      <p>Signature</p>
-      <p>Nov. 20, 2024</p>
-    </div>
+<!-- Add this modal code at the end of your existing template -->
+<div v-if="showPolicyModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 overflow-y-auto">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-7xl max-h-screen overflow-y-auto">
+    <h2 class="text-2xl font-bold mb-4 text-blue-600">Fiber Muscle System Policy</h2>
+    <p><strong>Effective Date:</strong> 2024 - 2030</p>
+    <p><strong>Policy Statement:</strong></p>
+    <p>Fiber Muscle is committed to fostering a productive, respectful, and organized gym environment by ensuring proper use of gym equipment and adherence to gym etiquette. This policy outlines the rules and responsibilities for members, administrators, and staff using the Fiber Muscle system.</p>
+    <hr class="my-4">
+    <h3 class="text-xl font-bold mb-2">Scope</h3>
+    <p>This policy applies to all members and staff who utilize the Fiber Muscle web and mobile applications. It governs the management of gym memberships, attendance tracking, exercise recommendations, and the assignment of workout plans.</p>
+    <hr class="my-4">
+    <h3 class="text-xl font-bold mb-2">Gym Policies and Guidelines</h3>
+    <ol class="list-decimal list-inside">
+      <li><strong>Equipment Usage:</strong>
+        <ul class="list-disc list-inside ml-4">
+          <li>Dumbbells must not be slammed or thrown. Handle them with care to ensure safety and prevent damage.</li>
+          <li>Return all weights, dumbbells, and plates to their designated racks after use.</li>
+        </ul>
+      </li>
+      <li><strong>System Access and Data Integrity:</strong>
+        <ul class="list-disc list-inside ml-4">
+          <li>Only authorized personnel may access the admin features of the Fiber Muscle web app.</li>
+          <li>Personal member information must remain confidential and must not be shared without consent.</li>
+        </ul>
+      </li>
+      <li><strong>Membership Management:</strong>
+        <ul class="list-disc list-inside ml-4">
+          <li>Registered users are automatically considered gym members.</li>
+          <li>Memberships are renewable on a monthly basis only.</li>
+          <li>Expired memberships can be renewed for an additional month.</li>
+          <li>During membership renewal, members must visit the gym in person to complete the renewal process through the Fiber Muscle admin system.</li>
+        </ul>
+      </li>
+      <li><strong>Attendance Management:</strong>
+        <ul class="list-disc list-inside ml-4">
+          <li>Members must scan their QR codes upon entering the gym to record their attendance automatically.</li>
+          <li>Members who are away can still have their attendance recorded by submitting a video of their exercise performance.</li>
+        </ul>
+      </li>
+      <li><strong>Exercise Recommendations:</strong>
+        <ul class="list-disc list-inside ml-4">
+          <li>BMI-based exercise suggestions are provided. Members are encouraged to consult a fitness professional for personalized advice.</li>
+          <li>Videos provided in the system are for reference purposes only and should be followed carefully to avoid injuries.</li>
+        </ul>
+      </li>
+      <li><strong>Responsibility and Conduct:</strong>
+        <ul class="list-disc list-inside ml-4">
+          <li>Maintain proper gym etiquette by respecting fellow members and handling equipment responsibly.</li>
+          <li>Report any issues with equipment or the system to the staff promptly.</li>
+        </ul>
+      </li>
+    </ol>
+    <hr class="my-4">
+    <h3 class="text-xl font-bold mb-2">Compliance and Enforcement</h3>
+    <p>Failure to adhere to these policies may result in:</p>
+    <ul class="list-disc list-inside ml-4">
+      <li>Temporary suspension of gym access.</li>
+      <li>Revocation of system privileges.</li>
+      <li>Other consequences as determined by the gym management team.</li>
+    </ul>
+    <p><strong>Approval:</strong></p>
+    <p>Juan Dela Cruz</p>
+    <p>Signature</p>
+    <p>Nov. 20, 2024</p>
+    <button @click="togglePolicyModal" class="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4">Okay</button>
+  </div>
+</div>
   </div>
 </template>
 
