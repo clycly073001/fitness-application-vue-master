@@ -339,8 +339,12 @@ onMounted(() => {
         </div>
         <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
           <p class="text-gray-600"><strong>Membership Status:</strong>
-            <span v-if="user.membership_status === true || user.membership_status === 1" class="ml-2 bg-green-500 text-white px-2 py-1 rounded-full">Active</span>
-            <span v-else class="ml-2 bg-red-500 text-white px-2 py-1 rounded-full">Expired</span>
+            <span 
+            :class="new Date(user.end_of_membership) > new Date() ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'"
+            class="px-3 py-1 rounded-full text-sm font-semibold"
+          >
+            {{ new Date(user.end_of_membership) > new Date() ? 'Active' : 'Expired' }}
+          </span>
           </p>
         </div>
       </div>
