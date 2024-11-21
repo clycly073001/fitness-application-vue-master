@@ -61,16 +61,7 @@ const fetchExercisesWithoutEquipment = async () => {
     console.error('Error fetching exercise equipment:', error);
   } else {
     const exerciseIdsWithEquipment = exerciseEquipment.map(e => e.exercise_id);
-    let { data, error: fetchError } = await supabase
-      .from('exercises')
-      .select('id')
-      .not('id', 'in', exerciseIdsWithEquipment);
-
-    if (fetchError) {
-      console.error('Error fetching exercises without equipment:', fetchError);
-    } else {
-      exercisesWithoutEquipment.value = data.map(exercise => exercise.id);
-    }
+    exercisesWithoutEquipment.value = exercises.value.filter(exercise => !exerciseIdsWithEquipment.includes(exercise.id)).map(exercise => exercise.id);
   }
 };
 
@@ -169,7 +160,7 @@ watch([selectedType, searchQuery], () => {
         <div v-for="exercise in exercises" :key="exercise.id" :class="{'bg-gray-200': exercisesWithoutEquipment.includes(exercise.id), 'bg-white': !exercisesWithoutEquipment.includes(exercise.id)}" class="shadow-md rounded-lg p-5 transition-transform transform hover:scale-105">
           <h2 class="text-lg font-semibold text-gray-700">{{ exercise.name }}</h2>
           <p class="text-gray-600"><strong>Type:</strong> {{ exercise.type }}</p>
-          <p v-if="exercisesWithoutEquipment.includes(exercise.id)" class="text-red-500 mt-2">This exercise doesn't have appropriate equipment</p>
+          <p v-if="exercisesWithoutEquipment.includes(exercise.id)" class="text-red-500 mt-2">No equipment</p>
           <div class="flex space-x-3 mt-3">
             <router-link :to="`/application/exercises/${exercise.id}`">
               <button class="text-white px-4 py-2 rounded-lg hover:bg-blue-100 transition duration-200">
