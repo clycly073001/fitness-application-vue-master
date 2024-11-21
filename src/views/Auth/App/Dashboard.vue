@@ -499,9 +499,8 @@ onMounted(async () => {
       <li>Revocation of system privileges.</li>
       <li>Other consequences as determined by the gym management team.</li>
     </ul>
-    <p><strong>Approval:</strong></p>
-    <p>Juan Dela Cruz</p>
-    <p>Signature</p>
+    <p><strong>Approved By:</strong></p>
+    <p>Jeson Jimenez</p>
     <p>Nov. 20, 2024</p>
     <button @click="togglePolicyModal" class="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4">Okay</button>
   </div>
