@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { supabase } from '@/lib/supabaseClient';
+import { computed } from 'vue';
 import swal from 'sweetalert';
 
 const route = useRoute();
@@ -293,6 +294,16 @@ const suggestFood = async () => {
     fetchFoodSuggestions(); // Refresh the food suggestions list
   }
 };
+const searchExerciseQuery = ref('');
+const selectedExerciseType = ref('');
+
+const filteredExercises = computed(() => {
+  return exercises.value.filter(exercise => {
+    const matchesQuery = exercise.name.toLowerCase().includes(searchExerciseQuery.value.toLowerCase());
+    const matchesType = selectedExerciseType.value ? exercise.type === selectedExerciseType.value : true;
+    return matchesQuery && matchesType;
+  });
+});
 
 onMounted(() => {
   fetchUser();
@@ -425,30 +436,42 @@ onMounted(() => {
       <p class="text-center">No user found.</p>
     </div>
 
-    <!-- Assign Exercises Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
-      <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-2xl font-bold mb-4">Assign Exercise(s)</h2>
-        <div class="max-h-60 overflow-y-auto mb-4">
-          <ul>
-            <li v-for="exercise in exercises" :key="exercise.id" class="mb-2">
-              <label class="flex items-center">
-                <input type="checkbox" v-model="selectedExercises" :value="exercise.id" class="mr-2">
-                {{ exercise.name }}
-              </label>
-            </li>
-          </ul>
-        </div>
-        <div class="flex justify-end">
-          <button @click="showModal = false" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-gray-600 transition duration-200">
-            Cancel
-          </button>
-          <button @click="assignExercises" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200">
-            Assign
-          </button>
-        </div>
-      </div>
+ <!-- Assign Exercises Modal -->
+<div v-if="showModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+    <h2 class="text-2xl font-bold mb-4">Assign Exercise(s)</h2>
+    <div class="mb-4">
+      <input type="text" v-model="searchExerciseQuery" placeholder="Search exercises..." class="w-full p-2 border rounded mb-2">
+      <select v-model="selectedExerciseType" class="w-full p-2 border rounded">
+        <option value="">All Types</option>
+        <option value="Abs Workout">Abs Workout</option>
+        <option value="Shoulders Workout">Shoulders Workout</option>
+        <option value="Arms Workout">Arms Workout</option>
+        <option value="Legs Workout">Legs Workout</option>
+        <option value="Back Workout">Back Workout</option>
+        <option value="Chest Workout">Chest Workout</option>
+      </select>
     </div>
+    <div class="max-h-60 overflow-y-auto mb-4">
+      <ul>
+        <li v-for="exercise in filteredExercises" :key="exercise.id" class="mb-2">
+          <label class="flex items-center">
+            <input type="checkbox" v-model="selectedExercises" :value="exercise.id" class="mr-2">
+            {{ exercise.name }}
+          </label>
+        </li>
+      </ul>
+    </div>
+    <div class="flex justify-end">
+      <button @click="showModal = false" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-gray-600 transition duration-200">
+        Cancel
+      </button>
+      <button @click="assignExercises" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200">
+        Assign
+      </button>
+    </div>
+  </div>
+</div>
 
     <!-- Suggest Foods Modal -->
 <!-- Suggest Foods Modal -->
