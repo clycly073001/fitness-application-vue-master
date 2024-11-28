@@ -140,12 +140,63 @@ watch(searchDate, (newDate) => {
   fetchAttendance(1, newDate);
 });
 
+const videoAttendance = ref([]);
+const videoAttendanceType = ref('Time In');
+const videoAttendancePage = ref(1);
+const videoItemsPerPage = 5;
+
+const fetchVideoAttendance = async (page = 1, type = 'Time In') => {
+  const start = (page - 1) * videoItemsPerPage;
+  const end = start + videoItemsPerPage - 1;
+
+  let queryBuilder;
+  if (type === 'Time In') {
+    queryBuilder = supabase
+      .from('time_in_attendance_video')
+      .select('id, created_at, user_id, video_link, users (name)')
+      .range(start, end);
+  } else {
+    queryBuilder = supabase
+      .from('time_out_attendance_video')
+      .select('id, created_at, user_id, video_link, users (name)')
+      .range(start, end);
+  }
+
+  let { data, error } = await queryBuilder;
+
+  if (error) {
+    console.error(`Error fetching ${type.toLowerCase()} attendance video:`, error);
+  } else {
+    videoAttendance.value = data;
+  }
+};
+
+const nextVideoPage = () => {
+  videoAttendancePage.value++;
+  fetchVideoAttendance(videoAttendancePage.value, videoAttendanceType.value);
+};
+
+const prevVideoPage = () => {
+  if (videoAttendancePage.value > 1) {
+    videoAttendancePage.value--;
+    fetchVideoAttendance(videoAttendancePage.value, videoAttendanceType.value);
+  }
+};
+
+watch(videoAttendanceType, (newType) => {
+  videoAttendancePage.value = 1;
+  fetchVideoAttendance(1, newType);
+});
+
+onMounted(() => {
+  fetchAttendance();
+  fetchVideoAttendance();
+});
+
 onMounted(() => {
   fetchAttendance();
 });
-</script>
-
-<template>
+</script><template>
   <div class="min-h-screen bg-gray-100 p-8">
     <h1 class="text-3xl font-bold mb-4 text-gray-800">Attendance Records</h1>
     <div class="mb-4 flex space-x-4">
@@ -197,17 +248,44 @@ onMounted(() => {
         Next
       </button>
     </div>
+
+    <h2 class="text-2xl font-bold mt-8 mb-4">Online Attendance With Videos</h2>
+    <div class="mb-4 flex space-x-4">
+      <select v-model="videoAttendanceType" class="w-full p-2 border rounded-lg">
+        <option value="Time In">Time In</option>
+        <option value="Time Out">Time Out</option>
+      </select>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white text-center">
+        <thead>
+          <tr>
+            <th class="py-2 px-4 border-b">ID</th>
+            <th class="py-2 px-4 border-b">Date and Time</th>
+            <th class="py-2 px-4 border-b">User Name</th>
+            <th class="py-2 px-4 border-b">Video Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="videoAttendance.length === 0">
+            <td colspan="4" class="py-2 px-4 border-b">No result</td>
+          </tr>
+          <tr v-else v-for="record in videoAttendance" :key="record.id">
+            <td class="py-2 px-4 border-b">{{ record.id }}</td>
+            <td class="py-2 px-4 border-b">{{ new Date(record.created_at).toLocaleString() }}</td>
+            <td class="py-2 px-4 border-b">{{ record.users?.name || 'N/A' }}</td>
+            <td class="py-2 px-4 border-b"><a :href="record.video_link" target="_blank" class="text-blue-600 hover:underline">View Video</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex justify-between mt-4">
+      <button @click="prevVideoPage" :disabled="videoAttendancePage === 1" class="bg-gray-500 text-white px-4 py-2 rounded-lg">
+        Previous
+      </button>
+      <button @click="nextVideoPage" class="bg-gray-500 text-white px-4 py-2 rounded-lg">
+        Next
+      </button>
+    </div>
   </div>
 </template>
-
-<style scoped>
-/* Add any additional styles here if needed */
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-table th, table td {
-  text-align: center;
-}
-</style>

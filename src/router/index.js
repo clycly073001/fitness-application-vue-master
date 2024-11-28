@@ -26,6 +26,7 @@ import Equipment_Create from '@/views/Auth/App/Equipment_Add.vue';
 import Equipment_Edit from '@/views/Auth/App/Equipment_Edit.vue';
 import Meals from '@/views/Auth/App/Meals.vue';
 import Meals_Show from '@/views/Auth/App/Meals_Show.vue';
+import AttendanceRecordWithVideos from '@/views/Auth/App/AttendanceRecordWithVideos.vue';
 
 const routes = [
   {
@@ -231,6 +232,12 @@ const routes = [
         name: 'AttendanceSheet',
         component: AttendanceRecord,
         meta: { title: 'Fiber Muscle - Attendance Records' }
+      },
+      {
+        path: 'attendance-videos',
+        name: 'AttendanceRecordVideos',
+        component: AttendanceRecordWithVideos,
+        meta: { title: 'Fiber Muscle - Attendance with Videos' }
       },
       {
         path: 'equipment',
