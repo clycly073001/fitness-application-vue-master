@@ -10,6 +10,41 @@ const itemsPerPage = 10;
 const totalItems = ref(0);
 const searchDate = ref('');
 
+const deleteVideoAttendanceRecord = async (recordId, type) => {
+  let tableName = type === 'Time In' ? 'time_in_attendance_video' : 'time_out_attendance_video';
+
+  const { error } = await supabase
+    .from(tableName)
+    .delete()
+    .eq('id', recordId);
+
+  if (error) {
+    console.error(`Error deleting ${type.toLowerCase()} attendance video record:`, error);
+  } else {
+    videoAttendance.value = videoAttendance.value.filter(record => record.id !== recordId);
+  }
+};
+
+const confirmDeleteVideoAttendance = (recordId, type) => {
+  swal({
+    title: "Are you sure?",
+    text: "Once deleted, you will not be able to recover this attendance video record!",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then((willDelete) => {
+    if (willDelete) {
+      deleteVideoAttendanceRecord(recordId, type);
+      swal("Poof! Your attendance video record has been deleted!", {
+        icon: "success",
+      });
+    } else {
+      swal("Your attendance video record is safe!");
+    }
+  });
+};
+
 const fetchAttendance = async (page = 1, dateQuery = '') => {
   const start = (page - 1) * itemsPerPage;
   const end = start + itemsPerPage - 1;
@@ -264,17 +299,21 @@ onMounted(() => {
             <th class="py-2 px-4 border-b">Date and Time</th>
             <th class="py-2 px-4 border-b">User Name</th>
             <th class="py-2 px-4 border-b">Video Link</th>
+            <th class="py-2 px-4 border-b">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="videoAttendance.length === 0">
-            <td colspan="4" class="py-2 px-4 border-b">No result</td>
+            <td colspan="5" class="py-2 px-4 border-b">No result</td>
           </tr>
           <tr v-else v-for="record in videoAttendance" :key="record.id">
             <td class="py-2 px-4 border-b">{{ record.id }}</td>
             <td class="py-2 px-4 border-b">{{ new Date(record.created_at).toLocaleString() }}</td>
             <td class="py-2 px-4 border-b">{{ record.users?.name || 'N/A' }}</td>
             <td class="py-2 px-4 border-b"><a :href="record.video_link" target="_blank" class="text-blue-600 hover:underline">View Video</a></td>
+            <td class="py-2 px-4 border-b">
+              <button @click="confirmDeleteVideoAttendance(record.id, videoAttendanceType)" class="px-4 py-2 rounded-lg hover:bg-red-100"><img src="/public/item_images/delete (1).png" alt=""></button>
+            </td>
           </tr>
         </tbody>
       </table>
